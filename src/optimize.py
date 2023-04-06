@@ -1,6 +1,7 @@
 import numpy as np
 
 from optimize_results import OptimizeResults
+from time import time
 
 
 class Optimize:
@@ -41,13 +42,82 @@ class Optimize:
 
         return result
 
-    @classmethod
-    def binary_search(self):
-        pass
 
     @classmethod
-    def golden_search(self):
-        pass
+    def binary_search(self, f, a: float, b: float, accuracy: float = 1e-5, max_steps: int = 1000):
+        success = False
+        nfev = 0
+        njev = 0
+        nit = 0
+        c = (a + b) / 2
+        for _ in range(max_steps): 
+            if abs(b - a) <= accuracy:
+                success = True
+                break
+            nit += 1
+            y = (a + c) / 2.0
+            nfev += 2
+            if f(y) <= f(c):
+                b = c
+                c = y
+            else:
+                nfev += 2
+                z = (b + c) / 2.0
+                if f(c) <= f(z):
+                    a = y
+                    b = z
+                else:
+                    a = c
+                    c = z
+        result = OptimizeResults(
+            success=success,
+            message="",
+            fun=f(c),
+            jac=None,
+            nfev=nfev,
+            njev=njev,
+            nhev=0,
+            nit=nit,
+            x=c
+        )
+        return result
+
+    @classmethod
+    def golden_search(self, f, a: float, b: float, accuracy: float = 1e-5, max_steps: int = 1000):
+        success = False
+        nfev = 0
+        njev = 0
+        nit = 0
+        tau = (np.sqrt(5) + 1) / 2
+        y = a + (b - a) / tau**2
+        z = a + (b - a) / tau
+        for _ in range(max_steps):
+            if b - a <= accuracy:
+                success = True
+                break
+            nit += 1
+            nfev += 2
+            if f(y) <= f(z):
+                b = z
+                z = y
+                y = a + (b - a) / tau**2
+            else:
+                a = y
+                y = z
+                z = a + (b - a) / tau
+        x_opt = (b-a)/2
+        result = OptimizeResults(
+            success=success,
+            message="",
+            fun=f(x_opt),
+            jac=None,
+            nfev=nfev,
+            njev=njev,
+            nhev=0,
+            nit=nit,
+            x=x_opt
+        )
+        return result
 
 
 

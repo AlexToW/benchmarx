@@ -1,6 +1,7 @@
 import numpy as np
 
 from optimize_results import OptimizeResults
+from benchmark import TestFunctions
 from time import time
 
 
@@ -105,7 +106,7 @@ class Optimize:
                 a = y
                 y = z
                 z = a + (b - a) / tau
-        x_opt = (b-a)/2
+        x_opt = (a+b)/2
         result = OptimizeResults(
             success=success,
             message="",
@@ -119,7 +120,45 @@ class Optimize:
         )
         return result
 
+    @classmethod
+    def steepest_gradient_descent(self, f, df, x0, max_steps: int = 1000, accuracy: float = 1e-5,
+                         trajectory_flag: bool = False, accept_test=None):
+        """
+        Steepest gradient descent: x_k+1 = x_k - alpha_k * grad_f(x_k), 
+        where alpha_k is the optimum of function f(a) = f(x_k - a * grad_f(x_k))
+        """
+        trajectory = list()
+        x = x0
+        success = False
+        nfev = 0
+        njev = 0
+        nit = 0
+        for i in range(max_steps):
+            if trajectory_flag:
+                trajectory.append(x)
+            if accept_test and accept_test(x, accuracy):
+                success = True
+                break
+            grad = df(x)
+            step_size = self.golden_search(f=lambda alpha: f(x - alpha * grad), a=0, b=1, max_steps=1000)
+            x = x - step_size.x * grad
+            njev += 1
+            nit += 1
+        result = OptimizeResults(
+            success=success,
+            message="",
+            fun=f(x),
+            jac=df(x),
+            nfev=nfev,
+            njev=njev,
+            nhev=0,
+            nit=nit,
+            x=x
+        )
+        if trajectory_flag:
+            result.trajectory = trajectory
 
+        return result
 
 
 def small_based_tests():
@@ -130,11 +169,11 @@ def small_based_tests():
     def accept_test(x, eps):
         return np.linalg.norm(df(x))**2 <= eps
 
-    x0 = np.array([1, 2, 0])
-    x_opt = np.array([1, 1, 1])
-    results = Optimize.gradient_descent(f=f, df=df, accuracy=1e-6, accept_test=accept_test, x0=x0, max_steps=1000)
-    print(f'|x-x*|: {np.linalg.norm(results.x - x_opt)}')
+    x0 = np.array([4, 3])
+    results = Optimize.gradient_descent(f=TestFunctions.Easom_f, df=TestFunctions.Easom_grad_f, accuracy=1e-6, accept_test=accept_test, x0=x0, max_steps=1000)
     print(results)
+    results_steepest = Optimize.steepest_gradient_descent(f=TestFunctions.Easom_f, df=TestFunctions.Easom_grad_f, accuracy=1e-6, accept_test=accept_test, x0=x0, max_steps=1000)
+    print(results_steepest)
 
 
 small_based_tests()

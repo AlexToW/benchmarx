@@ -138,7 +138,13 @@ def line_search_tests():
         print(abs(test.x_opt - result.x_opt))
     print('Golden search:')
     results_golden = tester.run_line_search_full_test(method=Optimize.golden_search)
-    for pair in results_binary:
+    for pair in results_golden:
+        test, result = pair
+        print(abs(test.x_opt - result.x_opt))
+
+    print('Parabolic:')
+    results_parabolic = tester.run_line_search_full_test(method=Optimize.parabolic_search)
+    for pair in results_parabolic:
         test, result = pair
         print(abs(test.x_opt - result.x_opt))
 

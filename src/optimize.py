@@ -11,7 +11,10 @@ class Optimize:
     
     @classmethod
     def gradient_descent(self, f, df, x0, step_size: float = 1e-2, max_steps: int = 1000, accuracy: float = 1e-5,
-                         trajectory_flag: bool = False, accept_test=None):
+                         trajectory_flag: bool = False, accept_test=None) -> OptimizeResults:
+        """
+        Gradient descent: x_k+1 = x_k - step_size * grad_f(x_k)
+        """
         trajectory = list()
         x = x0
         success = False
@@ -43,9 +46,8 @@ class Optimize:
 
         return result
 
-
     @classmethod
-    def binary_search(self, f, a: float, b: float, accuracy: float = 1e-5, max_steps: int = 1000):
+    def binary_search(self, f, a: float, b: float, accuracy: float = 1e-5, max_steps: int = 1000) -> OptimizeResults:
         success = False
         nfev = 0
         njev = 0
@@ -84,7 +86,7 @@ class Optimize:
         return result
 
     @classmethod
-    def golden_search(self, f, a: float, b: float, accuracy: float = 1e-5, max_steps: int = 1000):
+    def golden_search(self, f, a: float, b: float, accuracy: float = 1e-5, max_steps: int = 1000) -> OptimizeResults:
         success = False
         nfev = 0
         njev = 0
@@ -122,7 +124,7 @@ class Optimize:
 
     @classmethod
     def steepest_gradient_descent(self, f, df, x0, max_steps: int = 1000, accuracy: float = 1e-5,
-                         trajectory_flag: bool = False, accept_test=None):
+                         trajectory_flag: bool = False, accept_test=None) -> OptimizeResults:
         """
         Steepest gradient descent: x_k+1 = x_k - alpha_k * grad_f(x_k), 
         where alpha_k is the optimum of function f(a) = f(x_k - a * grad_f(x_k))

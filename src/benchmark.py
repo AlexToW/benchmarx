@@ -1,4 +1,5 @@
 import numpy as np
+from enum import Enum
 
 
 class TestFunctionUnit:
@@ -325,6 +326,14 @@ class TestFunctions:
         df_x = np.sin(x)*np.cos(y)*exp + np.cos(x)*np.cos(y)*exp*2*(x-np.pi)
         df_y = np.cos(x)*np.sin(y)*exp + np.cos(x)*np.cos(y)*exp*2*(y-np.pi)
         return np.array([df_x, df_y])
+
+
+class BenchmarckType(Enum):
+    ITERS = 1,
+    FUNC_CALLS = 2,
+    JAC_CALLS = 3,
+    HESS_CALLS = 4,
+    DURATION = 5
 
 
 class Benchmark:

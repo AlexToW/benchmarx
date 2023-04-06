@@ -192,6 +192,21 @@ class TestFunctions:
         y = z[1]
         return 100 * np.sqrt(np.abs(y - 0.01 * x ** 2)) + 0.01 * np.abs(x + 10)
 
+    def Bukin_grad_f(self, z):
+        '''
+        Gradient of Bukin function
+        :param z: np.array of shape (2,)
+        :return: np.array of shape (2,)
+        '''
+        def sign(a):
+            return int(a >= 0)
+        x = z[0]
+        y = z[1]
+        tok = y - x**2/100
+        df_x = -x*sign(tok) / np.sqrt(abs(tok)) + sign(x+10)/100
+        df_y = 50*sign(tok) / np.sqrt(abs(tok))
+        return np.array([df_x, df_y])
+
     def Matyas_f(self, z):
         """
         Global optimum: f(0, 0) = 0
@@ -202,6 +217,17 @@ class TestFunctions:
         x = z[0]
         y = z[1]
         return 0.26 * (x ** 2 + y ** 2) - 0.28 * x * y
+
+    def Matyas_grad_f(self, z):
+        """
+        Gradient of Matyas function
+        -10 <= x, y <= 10
+        :param z: np.array of shape (2,)
+        :return: np.array of shape (2,)
+        """
+        x = z[0]
+        y = z[1]
+        return np.array([0.52*x - 0.48*y, 0.52*y - 0.48*x])
 
     def Levi_f(self, z):
         """
@@ -215,6 +241,19 @@ class TestFunctions:
         return np.sin(3 * np.pi * x) ** 2 + (x - 1) ** 2 * (1 + np.sin(3 * np.pi * y) ** 2) + (y - 1) ** 2 * (
                     1 + np.sin(2 * np.pi * y) ** 2)
 
+    def Levi_grad_f(self, z):
+        """
+        Gradient of Levi function
+        -10 <= x, y <= 10
+        :param z: np.array of shape (2,)
+        :return: np.array of shape (2,)
+        """
+        x = z[0]
+        y = z[1]
+        df_x = 3*np.pi*np.sin(6*np.pi*x) + 2*(x-1)*(1+(np.sin(3*np.pi*y)**2))
+        df_y = (x-1)**2*(1 + 3*np.pi*np.sin(6*np.pi*y)) + 2*(y-1)*(1+(np.sin(3*np.pi*y)**2)) + (y-1)**2*(1+2*np.pi*np.cos(4*np.pi*y))
+        return np.array([df_x, df_y])
+
     def Three_hump_camel_f(self, z):
         """
         Global optimum: f(0, 0) = 0
@@ -225,6 +264,19 @@ class TestFunctions:
         x = z[0]
         y = z[1]
         return 2 * x ** 2 - 1.05 * x ** 4 + x ** 6 / 6 + x * y + y ** 2
+    
+    def Three_hump_camel_grad_f(self, z):
+        """
+        Gradient of Three hump camel function
+        -5 <= x, y <= 5
+        :param z: np.array of shape (2,)
+        :return: np.array of shape (2,)
+        """
+        x = z[0]
+        y = z[1]
+        df_x = 4*x - 4.2*x**3 + x**5 + y
+        df_y = x + 2*y
+        return np.array([df_x, df_y])
 
     def Easom_f(self, z):
         """
@@ -236,6 +288,20 @@ class TestFunctions:
         x = z[0]
         y = z[1]
         return -np.cos(x) * np.cos(y) * np.exp(-((x - np.pi) ** 2 + (y - np.pi) ** 2))
+
+    def Easom_grad_f(self, z):
+        """
+        Gradient of Easom function
+        -100 <= x, y <= 100
+        :param z: np.array of shape (2,)
+        :return: np.array of shape (2,)
+        """
+        x = z[0]
+        y = z[1]
+        exp = np.exp(-(x-np.pi)**2 - (y-np.pi)**2)
+        df_x = np.sin(x)*np.cos(y)*exp + np.cos(x)*np.cos(y)*exp*2*(x-np.pi)
+        df_y = np.cos(x)*np.sin(y)*exp + np.cos(x)*np.cos(y)*exp*2*(y-np.pi)
+        return np.array([df_x, df_y])
 
 
 class Benchmark:

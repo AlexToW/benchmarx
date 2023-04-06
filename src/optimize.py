@@ -9,43 +9,7 @@ class Optimize:
     def __init__(self):
         pass
     
-    @classmethod
-    def gradient_descent(self, f, df, x0, step_size: float = 1e-2, max_steps: int = 1000, accuracy: float = 1e-5,
-                         trajectory_flag: bool = False, accept_test=None) -> OptimizeResults:
-        """
-        Gradient descent: x_k+1 = x_k - step_size * grad_f(x_k)
-        """
-        trajectory = list()
-        x = x0
-        success = False
-        nfev = 0
-        njev = 0
-        nit = 0
-        for i in range(max_steps):
-            if trajectory_flag:
-                trajectory.append(x)
-            if accept_test and accept_test(df, x, accuracy):
-                success = True
-                break
-            x = x - step_size * df(x)
-            njev += 1
-            nit += 1
-        result = OptimizeResults(
-            success=success,
-            message="",
-            fun=f(x),
-            jac=df(x),
-            nfev=nfev,
-            njev=njev,
-            nhev=0,
-            nit=nit,
-            x=x
-        )
-        if trajectory_flag:
-            result.trajectory = trajectory
-
-        return result
-
+    # Line search methods
     @classmethod
     def binary_search(self, f, a: float, b: float, accuracy: float = 1e-5, max_steps: int = 1000) -> OptimizeResults:
         success = False
@@ -123,6 +87,91 @@ class Optimize:
         return result
 
     @classmethod
+    def parabolic_search(self, f, a: float, b: float, accuracy: float = 1e-5, max_steps: int = 1000) -> OptimizeResults:
+        success = False
+        nfev = 0
+        njev = 0
+        nit = 0
+        x1 = a
+        x3 = b
+        x2 = (a + b) / 2
+        f1, f2, f3 = f(x1), f(x2), f(x3)
+        for _ in range(max_steps):
+            if x3 - x1 > accuracy:
+                break
+            u = x2 - ((x2 - x1)**2*(f2 - f3) - (x2 - x3)**2*(f2 - f1))/(2*((x2 - x1)*(f2 - f3) - (x2 - x3)*(f2 - f1)))
+            fu = f(u)
+            nit += 1
+            nfev += 1
+
+            if x2 <= u:
+                if f2 <= fu:
+                    x1, x2, x3 = x1, x2, u
+                    f1, f2, f3 = f1, f2, fu
+                else:
+                    x1, x2, x3 = x2, u, x3
+                    f1, f2, f3 = f2, fu, f3
+            else:
+                if fu <= f2:
+                    x1, x2, x3 = x1, u, x2
+                    f1, f2, f3 = f1, fu, f2
+                else:
+                    x1, x2, x3 = u, x2, x3
+                    f1, f2, f3 = fu, f2, f3
+        x_opt = (x1 + x3) / 2
+        result = OptimizeResults(
+            success=success,
+            message="",
+            fun=f(x_opt),
+            jac=None,
+            nfev=nfev,
+            njev=njev,
+            nhev=0,
+            nit=nit,
+            x=x_opt
+        )
+        return result
+
+
+    # First-order methods
+    @classmethod
+    def gradient_descent(self, f, df, x0, step_size: float = 1e-2, max_steps: int = 1000, accuracy: float = 1e-5,
+                         trajectory_flag: bool = False, accept_test=None) -> OptimizeResults:
+        """
+        Gradient descent: x_k+1 = x_k - step_size * grad_f(x_k)
+        """
+        trajectory = list()
+        x = x0
+        success = False
+        nfev = 0
+        njev = 0
+        nit = 0
+        for i in range(max_steps):
+            if trajectory_flag:
+                trajectory.append(x)
+            if accept_test and accept_test(df, x, accuracy):
+                success = True
+                break
+            x = x - step_size * df(x)
+            njev += 1
+            nit += 1
+        result = OptimizeResults(
+            success=success,
+            message="",
+            fun=f(x),
+            jac=df(x),
+            nfev=nfev,
+            njev=njev,
+            nhev=0,
+            nit=nit,
+            x=x
+        )
+        if trajectory_flag:
+            result.trajectory = trajectory
+
+        return result
+
+    @classmethod
     def steepest_gradient_descent(self, f, df, x0, max_steps: int = 1000, accuracy: float = 1e-5,
                          trajectory_flag: bool = False, accept_test=None) -> OptimizeResults:
         """
@@ -178,4 +227,4 @@ def small_based_tests():
     print(results_steepest)
 
 
-small_based_tests()
+#small_based_tests()

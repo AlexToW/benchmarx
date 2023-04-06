@@ -14,6 +14,68 @@ class TestFunctions:
     def __init__(self):
         pass
 
+    # One dimensional functions f: R -> R
+    @classmethod
+    def func_00_1d(self, x: float) -> float:
+        """
+        Global optimum: x_opt = 0
+        -2 <= x <= 2
+        :param x: float
+        :return: float
+        """
+        return abs(x)
+
+    @classmethod
+    def func_01_1d(self, x: float) -> float:
+        """
+        Global optimum: x_opt = 5.145735
+        2 <= x <= 8
+        :param x: float
+        :return: float
+        """
+        return np.sin(x) + np.sin(10*x / 3)
+    
+    @classmethod
+    def func_02_1d(self, x: float) -> float:
+        """
+        Global optimum: x_opt = -3.85045
+        2 <= x <= 4
+        :param x: float
+        :return: float
+        """
+        return -(16*x**2 - 24*x + 5)* np.exp(-x)
+
+    @classmethod
+    def func_03_1d(self, x: float) -> float:
+        """
+        Global optimum: x_opt = 0.96609
+        0 <= x <= 1.2
+        :param x: float
+        :return: float
+        """
+        return -(1.4 - 3*x)*np.sin(18*x)
+
+    @classmethod
+    def func_04_1d(self, x: float) -> float:
+        """
+        Global optimum: x_opt = 0.67956
+        -10 <= x <= 10
+        :param x: float
+        :return: float
+        """
+        return -(x + np.sin(x)) * np.exp(-x**2)
+
+    @classmethod
+    def func_05_1d(self, x: float) -> float:
+        """
+        Global optimum: x_opt = 5.19978
+        2.7 <= x <= 7.5
+        :param x: float
+        :return: float
+        """
+        return np.sin(x) + np.sin(10*x/3) + np.log(x) - 0.84*x + 3
+
+
     @classmethod
     def Rastrigin_f(self, x):
         """

@@ -1,5 +1,9 @@
 from typing import Callable, List
 import time
+import sys
+
+sys.path.insert(0, '/Users/aleksandrtrisin/Documents/6 семестр/метопты/BenchamrckMain/Benchmark_Opt/src')
+
 from optimize import Optimize
 from test_functions import TestFunctions, TestFunctionUnit
 

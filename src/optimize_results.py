@@ -18,11 +18,11 @@ class OptimizeResults:
 
     def __str__(self):
         return f'''fun: {self.fun}
-                jac: {self.jac}
-                message: \'{self.message}\'
-                nfev: {self.nfev}
-                nit: {self.nit}
-                njev: {self.njev}
-                success: {self.success}
-                x: {self.x}
-                '''
+jac: {self.jac}
+message: \'{self.message}\'
+nfev: {self.nfev}
+nit: {self.nit}
+njev: {self.njev}
+success: {self.success}
+x: {self.x}
+        '''

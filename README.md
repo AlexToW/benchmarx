@@ -1,2 +1,2 @@
-# Benchmark_Opt
-Benchmarking of omptimization methods
+# Benchmark of numerical optimization methods
+Benchmarking of numerical omptimization methods

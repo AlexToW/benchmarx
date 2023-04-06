@@ -21,7 +21,7 @@ class Optimize:
         for i in range(max_steps):
             if trajectory_flag:
                 trajectory.append(x)
-            if accept_test and accept_test(x, accuracy):
+            if accept_test and accept_test(df, x, accuracy):
                 success = True
                 break
             x = x - step_size * df(x)
@@ -136,7 +136,7 @@ class Optimize:
         for i in range(max_steps):
             if trajectory_flag:
                 trajectory.append(x)
-            if accept_test and accept_test(x, accuracy):
+            if accept_test and accept_test(df, x, accuracy):
                 success = True
                 break
             grad = df(x)
@@ -166,13 +166,13 @@ def small_based_tests():
         return sum([(x_i - 1)**2 for x_i in x])
     def df(x):
         return np.array([2*(x_i - 1) for x_i in x])
-    def accept_test(x, eps):
+    def accept_test(df, x, eps):
         return np.linalg.norm(df(x))**2 <= eps
 
     x0 = np.array([4, 3])
-    results = Optimize.gradient_descent(f=TestFunctions.Easom_f, df=TestFunctions.Easom_grad_f, accuracy=1e-6, accept_test=accept_test, x0=x0, max_steps=1000)
+    results = Optimize.gradient_descent(f=TestFunctions.Easom_f, df=TestFunctions.Easom_grad_f, accuracy=1e-6, accept_test=accept_test, x0=x0, max_steps=2000)
     print(results)
-    results_steepest = Optimize.steepest_gradient_descent(f=TestFunctions.Easom_f, df=TestFunctions.Easom_grad_f, accuracy=1e-6, accept_test=accept_test, x0=x0, max_steps=1000)
+    results_steepest = Optimize.steepest_gradient_descent(f=TestFunctions.Easom_f, df=TestFunctions.Easom_grad_f, accuracy=1e-6, accept_test=accept_test, x0=x0, max_steps=2000)
     print(results_steepest)
 
 

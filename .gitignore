@@ -2,3 +2,4 @@ test.ipynb
 *.pyc
 .DS_Store
 .ipynb_checkpoints
+questions.txt

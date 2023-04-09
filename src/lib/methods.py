@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class Methods(Enum):
+class Method(Enum):
     GRADIENT_DESCENT = 1,
     STEEPEST_DESCENT = 2,
     NEWTON = 3,

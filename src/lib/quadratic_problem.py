@@ -52,4 +52,4 @@ def local_test():
     qp = QuadraticProblem(n=n)
     print(qp.info, '\n', qp.A)
 
-local_test()
+#local_test()

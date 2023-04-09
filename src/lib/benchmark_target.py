@@ -22,4 +22,4 @@ def local_test():
     print(val)
     print(val2)
 
-local_test()
+#local_test()

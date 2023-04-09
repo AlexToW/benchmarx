@@ -10,3 +10,16 @@ class BenchmarkTarget(Enum):
     nhev = 7,
     errors = 8,
     time = 9
+
+    def __str__(self) -> str:
+        return self.name
+    
+
+
+def local_test():
+    val = BenchmarkTarget.nit
+    val2 = BenchmarkTarget.trajectory_x
+    print(val)
+    print(val2)
+
+local_test()

@@ -82,17 +82,25 @@ class Benchmark:
         
         return result
 
-    def run(self) -> BenchmarkResult:
+    def run(self, x_init, *args, **kwargs) -> BenchmarkResult:
         res = BenchmarkResult(
             problem=self.problem,
             methods=self.methods,
             keys=self.result_params
         )
-        pre_data = list()
         data = dict()
         for method in self.methods:
             # data: dict[Method, dict[Problem, dict[BenchmarkTarget, list[any]]]] = None
-            sub = self.__run_solver()
-            data[Method.GRADIENT_DESCENT] = dict((self.problem, sub))
-
+            if method == Method.GRADIENT_DESCENT:
+                solver = jaxopt.GradientDescent(fun=self.problem.f, *args, **kwargs)
+                sub = self.__run_solver(
+                    solver=solver,
+                    x_init=x_init,
+                    result_params=self.result_params,
+                    args=args,
+                    kwargs=kwargs
+                )
+                data[Method.GRADIENT_DESCENT] = dict((self.problem, sub))
+        res.data = data
+        return res
         

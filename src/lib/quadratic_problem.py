@@ -1,9 +1,10 @@
 import jax
 import sys
+import os
 
 
 from problem import Problem
-sys.path.insert(1, '/Users/aleksandrtrisin/Documents/6 семестр/метопты/Benchmark_Opt/src/')
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname('src'), '..')))
 from defaults import *
 
 

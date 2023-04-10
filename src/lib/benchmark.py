@@ -90,7 +90,7 @@ class Benchmark:
     def run(self) -> BenchmarkResult:
         res = BenchmarkResult(problem=self.problem, methods=list(), metrics=self.metrics)
         data = dict()
-        # list[dict[Method : dict[str:any]]]
+        # methods: list[dict[Method : dict[str:any]]]
         for item in self.methods:
             for method, params in item.items():
                 # data: dict[Method, dict[Problem, dict[BenchmarkTarget, list[any]]]] = None
@@ -101,8 +101,8 @@ class Benchmark:
                         x_init = params['x_init']
                         params.pop('x_init')
                     solver = jaxopt.GradientDescent(fun=self.problem.f, **params)
+                    print(solver)
                     sub = self.__run_solver(solver=solver, x_init=x_init, metrics=self.metrics, **params)
-                    #data[Method.GRADIENT_DESCENT] = {self.problem: sub}
                     data[self.problem] = {Method.GRADIENT_DESCENT : sub}
             res.data = data
         return res
@@ -116,6 +116,7 @@ def test_local():
     problem = QuadraticProblem(n=n)
     benchamrk = Benchmark(
         problem=problem,
+        # methods: list[dict[Method : dict[str:any]]]
         methods=[
             {
                 Method.GRADIENT_DESCENT: {
@@ -123,6 +124,14 @@ def test_local():
                     'tol': 1e-2,
                     'maxiter': 7,
                     'stepsize' : 1e-2
+                }
+            },
+            {
+                Method.GRADIENT_DESCENT: {
+                    'x_init' : x_init,
+                    'tol': 1e-2,
+                    'maxiter': 10,
+                    'stepsize' : lambda iter_num: 1 / (iter_num + 20)
                 }
             }
         ],

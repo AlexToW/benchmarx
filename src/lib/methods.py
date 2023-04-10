@@ -9,7 +9,7 @@ class Method(Enum):
     CONJUGATE_GRADIENTS = 5
 
     def __str__(self) -> str:
-        return self.name
+        return f'{self.name}'
 
 
 def test_local():
@@ -17,4 +17,4 @@ def test_local():
     print(str(method))
 
 
-# test_local()
+#test_local()

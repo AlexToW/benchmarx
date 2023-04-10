@@ -27,8 +27,8 @@ class Benchmark:
     def __run_solver(self, solver, x_init, result_params: list[BenchmarkTarget], 
                     *args, **kwargs) -> dict[BenchmarkTarget, list[any]]:
         """
-        Прослойка для вытягивания необходимой информации согласно result_params
-        по ходу работы "метода" solver (solver like jaxopt.GradientDescent obj)
+        A layer for pulling the necessary information according to result_params 
+        as the "method" solver works (solver like jaxopt.GradientDescent obj)
         """
         result = dict()
         start_time = time.time()
@@ -105,9 +105,8 @@ class Benchmark:
         return res
 
 
-from quadratic_problem import QuadraticProblem
-
 def test_local():
+    from quadratic_problem import QuadraticProblem
     n = 2
     x_init = jnp.array([1., 1.])
     problem = QuadraticProblem(n=n)

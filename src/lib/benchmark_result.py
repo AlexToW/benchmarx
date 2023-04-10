@@ -24,7 +24,6 @@ class BenchmarkResult:
         Saves benchmarking data to a json file by path.
         """
         # data: dict[Method, dict[Problem, dict[BenchmarkTarget, list[any]]]] = None
-
         data_str = dict()
         for method, ddict in self.data.items():
             tmp2 = dict()
@@ -32,7 +31,6 @@ class BenchmarkResult:
                 tmp1 = dict()
                 for target, lst in dddict.items():
                     tmp1[str(target)] = [str(val) for val in lst]
-                    #data_str[str(method)][str(problem)][str(target)] = [str(val) for val in lst]
                 tmp2[str(problem)] = tmp1
             data_str[str(method)] = tmp2
         with open(path, 'w') as file:

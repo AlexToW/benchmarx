@@ -7,7 +7,7 @@ from problem import Problem
 
 
 class BenchmarkResult:
-    methods: list[Method] = None       # methods that have been benchmarked
+    methods: list[Method] = None        # methods that have been benchmarked
     keys: list[BenchmarkTarget] = None  # an array of fields that will be assigned to each of the methods from self.methods
     problem: Problem = None             # the Problem on which the benchmarking was performed
     data: dict[Method, dict[Problem, dict[BenchmarkTarget, list[any]]]] = None
@@ -34,8 +34,7 @@ class BenchmarkResult:
                 tmp2[str(problem)] = tmp1
             data_str[str(method)] = tmp2
         with open(path, 'w') as file:
-            #json.dump(self.data, file)
-            json.dump(data_str, file)
+            json.dump(data_str, file, indent=2)
 
     def send_wandb(self):
         pass

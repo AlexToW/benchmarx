@@ -113,9 +113,32 @@ def test_local():
     benchamrk = Benchmark(
         problem=problem,
         methods=[Method.GRADIENT_DESCENT],
-        result_params=[BenchmarkTarget.nit, BenchmarkTarget.trajectory_x]
+        result_params=[BenchmarkTarget.nit, 
+                       BenchmarkTarget.trajectory_x, 
+                       BenchmarkTarget.trajectory_f]
     )
-    result = benchamrk.run(x_init=x_init, tol=1e-5)
+    result = benchamrk.run(x_init=x_init, tol=1e-5, maxiter=7)
     result.save('GD_quadratic.json')
+    """
+    $ cat GD_quadratic.json
+    {
+        "GRADIENT_DESCENT": {
+            "Quadratic problem": {
+                "trajectory_x": [
+                    "[0.01308137 0.08063173]",
+                    "[-0.3511476  -0.30047017]",
+                    "[-0.5099794 -0.5174094]",
+                    "[-0.48962325 -0.6391536 ]",
+                    "[-0.3664372  -0.74309134]",
+                    "[-0.31294745 -0.8298627 ]",
+                    "[-0.28392574 -0.88880813]"
+                ],
+                "nit": [
+                    "7"
+                ]
+            }
+        }
+    }
+    """
 
 test_local()

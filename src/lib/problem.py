@@ -18,3 +18,6 @@ class Problem:
         x: any
         """
         return self.f(x)
+    
+    def __str__(self) -> str:
+        return self.info

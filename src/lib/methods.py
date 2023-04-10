@@ -9,3 +9,10 @@ class Method(Enum):
 
     def __str__(self) -> str:
         return self.name
+
+
+def test_local():
+    method = Method.GRADIENT_DESCENT
+    print(str(method))
+
+#test_local()

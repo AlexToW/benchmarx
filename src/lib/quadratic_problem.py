@@ -28,8 +28,14 @@ class QuadraticProblem(Problem):
         else:
             self.b = b
 
-        func = lambda x: 0.5 * x.T @ self.A @ x + self.b.T @ x
-        super().__init__(info=info, func=func)
+        #func = lambda x: 0.5 * x.T @ self.A @ x + self.b.T @ x
+        super().__init__(info=info, func=self.f)
+
+    def f(self, x, *args, **kwargs):
+        """
+        Quadratic function
+        """
+        return 0.5 * x.T @ self.A @ x + self.b.T @ x
 
     def __get_random_matrix(self, n: int = 2):
         """

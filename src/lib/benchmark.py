@@ -100,7 +100,23 @@ class Benchmark:
                     args=args,
                     kwargs=kwargs
                 )
-                data[Method.GRADIENT_DESCENT] = dict((self.problem, sub))
+                data[Method.GRADIENT_DESCENT] = {self.problem : sub}
         res.data = data
         return res
-        
+
+
+from quadratic_problem import QuadraticProblem
+
+def test_local():
+    n = 2
+    x_init = jnp.array([1., 1.])
+    problem = QuadraticProblem(n=n)
+    benchamrk = Benchmark(
+        problem=problem,
+        methods=[Method.GRADIENT_DESCENT],
+        result_params=[BenchmarkTarget.nit, BenchmarkTarget.trajectory_x]
+    )
+    result = benchamrk.run(x_init=x_init, tol=1e-5)
+    result.save('GD_quadratic.json')
+
+test_local()

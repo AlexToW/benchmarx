@@ -8,6 +8,7 @@ from problem import Problem
 from methods import Method
 
 # from benchmark_target import BenchmarkTarget
+from metrics import *
 from benchmark_result import BenchmarkResult
 
 
@@ -29,6 +30,8 @@ class Benchmark:
     ) -> None:
         self.problem = problem
         self.methods = methods
+        if not check_metric(metrics):
+            exit(1)
         self.metrics = metrics
 
     def __run_solver(
@@ -85,7 +88,7 @@ class Benchmark:
         return result
 
     def run(self) -> BenchmarkResult:
-        res = BenchmarkResult(problem=self.problem, methods=list(), keys=self.metrics)
+        res = BenchmarkResult(problem=self.problem, methods=list(), metrics=self.metrics)
         data = dict()
         # list[dict[Method : dict[str:any]]]
         for item in self.methods:
@@ -115,7 +118,7 @@ def test_local():
         methods=[
             {
                 Method.GRADIENT_DESCENT: {
-                    'x_init' : jnp.array([1., 1.]),
+                    'x_init' : x_init,
                     'tol': 1e-2,
                     'maxiter': 2500,
                     'stepsize' : 1e-2

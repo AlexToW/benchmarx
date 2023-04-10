@@ -2,35 +2,37 @@ import json
 
 
 from methods import Method
-from benchmark_target import BenchmarkTarget
+from metrics import *
 from problem import Problem
 
 
 class BenchmarkResult:
     methods: list[Method] = None  # methods that have been benchmarked
-    keys: list[
-        BenchmarkTarget
+    metrics: list[
+        str
     ] = None  # an array of fields that will be assigned to each of the methods from self.methods
     problem: Problem = None  # the Problem on which the benchmarking was performed
-    data: dict[Method, dict[Problem, dict[BenchmarkTarget, list[any]]]] = None
+    data: dict[Method, dict[Problem, dict[str, list[any]]]] = None
 
     def __init__(
         self,
         problem: Problem,
         methods: list[Method],
-        keys: list[BenchmarkTarget],
-        data: dict[Method, dict[Problem, dict[BenchmarkTarget, list[any]]]] = None,
+        metrics: list[str],
+        data: dict[Method, dict[Problem, dict[str, list[any]]]] = None,
     ) -> None:
         self.problem = problem
         self.methods = methods
-        self.keys = keys
+        if not check_metric(metrics):
+            exit(1)
+        self.metrics = metrics
         self.data = data
 
     def save(self, path: str) -> None:
         """
         Saves benchmarking data to a json file by path.
         """
-        # data: dict[Method, dict[Problem, dict[BenchmarkTarget, list[any]]]] = None
+        # data: dict[Method, dict[Problem, dict[str, list[any]]]] = None
         data_str = dict()
         for method, ddict in self.data.items():
             tmp2 = dict()

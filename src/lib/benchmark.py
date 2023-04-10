@@ -6,7 +6,8 @@ import time
 
 from problem import Problem
 from methods import Method
-from benchmark_target import BenchmarkTarget
+
+# from benchmark_target import BenchmarkTarget
 from benchmark_result import BenchmarkResult
 
 
@@ -17,26 +18,24 @@ class Benchmark:
     """
 
     problem: Problem = None  # Problem to solve
-    methods: list[Method] = None  # Methods for benchmarking
-    result_params: list[
-        BenchmarkTarget
-    ] = None  # List of fields to include in BenchamrkResult
+    methods: list[dict[Method : dict[str:any]]] = None  # Methods for benchmarking
+    metrics: list[str] = None  # List of fields to include in BenchamrkResult
 
     def __init__(
         self,
         problem: Problem,
-        methods: list[Method],
-        result_params: list[BenchmarkTarget],
+        methods: list[dict[Method : dict[str:any]]],
+        metrics: list[str],
     ) -> None:
         self.problem = problem
         self.methods = methods
-        self.result_params = result_params
+        self.metrics = metrics
 
     def __run_solver(
-        self, solver, x_init, result_params: list[BenchmarkTarget], *args, **kwargs
-    ) -> dict[BenchmarkTarget, list[any]]:
+        self, solver, x_init, metrics: list[str], *args, **kwargs
+    ) -> dict[str, list[any]]:
         """
-        A layer for pulling the necessary information according to result_params
+        A layer for pulling the necessary information according to metrics
         as the "method" solver works (solver like jaxopt.GradientDescent obj)
         """
         result = dict()
@@ -50,65 +49,58 @@ class Benchmark:
 
         for _ in range(solver.maxiter):
             sol, state = jitted_update(sol, state)
-            if BenchmarkTarget.trajectory_x in result_params:
-                if not BenchmarkTarget.trajectory_x in result:
-                    result[BenchmarkTarget.trajectory_x] = [sol]
+            if "history_x" in metrics:
+                if not "history_x" in result:
+                    result["history_x"] = [sol]
                 else:
-                    result[BenchmarkTarget.trajectory_x].append(sol)
-            if BenchmarkTarget.trajectory_f in result_params:
-                if not BenchmarkTarget.trajectory_f in result:
-                    result[BenchmarkTarget.trajectory_f] = [self.problem.f(sol)]
+                    result["history_x"].append(sol)
+            if "history_f" in metrics:
+                if not "history_f" in result:
+                    result["history_f"] = [self.problem.f(sol)]
                 else:
-                    result[BenchmarkTarget.trajectory_f].append(self.problem.f(sol))
-            if BenchmarkTarget.trajectory_df in result_params:
-                grad = jax.grad(f=self.problem.f)
-                if not BenchmarkTarget.trajectory_df in result:
-                    result[BenchmarkTarget.trajectory_x] = [grad(sol)]
+                    result["history_f"].append(self.problem.f(sol))
+            if "nit" in metrics:
+                if not "nit" in result:
+                    result["nit"] = [1]
                 else:
-                    result[BenchmarkTarget.trajectory_df].append(grad(sol))
-            if BenchmarkTarget.nit in result_params:
-                if not BenchmarkTarget.nit in result:
-                    result[BenchmarkTarget.nit] = [1]
-                else:
-                    result[BenchmarkTarget.nit][0] += 1
-            if BenchmarkTarget.nfev in result_params:
+                    result["nit"][0] += 1
+            if "nfev" in metrics:
                 # IDK
                 pass
-            if BenchmarkTarget.njev in result_params:
+            if "njev" in metrics:
                 # IDK
                 pass
-            if BenchmarkTarget.nhev in result_params:
+            if "nhev" in metrics:
                 # IDK
                 pass
-            if BenchmarkTarget.errors in result_params:
-                if not BenchmarkTarget.errors in result:
-                    result[BenchmarkTarget.errors] = [state.error]
+            if "errors" in metrics:
+                if not "errors" in result:
+                    result["errors"] = [state.error]
                 else:
-                    result[BenchmarkTarget.errors].append(state.error)
+                    result["errors"].append(state.error)
         duration = time.time() - start_time
-        if BenchmarkTarget.time in result_params:
-            result[BenchmarkTarget.time] = [duration]
+        if "time" in metrics:
+            result["time"] = [duration]
 
         return result
 
-    def run(self, x_init, *args, **kwargs) -> BenchmarkResult:
-        res = BenchmarkResult(
-            problem=self.problem, methods=self.methods, keys=self.result_params
-        )
+    def run(self) -> BenchmarkResult:
+        res = BenchmarkResult(problem=self.problem, methods=list(), keys=self.metrics)
         data = dict()
-        for method in self.methods:
-            # data: dict[Method, dict[Problem, dict[BenchmarkTarget, list[any]]]] = None
-            if method == Method.GRADIENT_DESCENT:
-                solver = jaxopt.GradientDescent(fun=self.problem.f, *args, **kwargs)
-                sub = self.__run_solver(
-                    solver=solver,
-                    x_init=x_init,
-                    result_params=self.result_params,
-                    args=args,
-                    kwargs=kwargs,
-                )
-                data[Method.GRADIENT_DESCENT] = {self.problem: sub}
-        res.data = data
+        # list[dict[Method : dict[str:any]]]
+        for item in self.methods:
+            for method, params in item.items():
+                # data: dict[Method, dict[Problem, dict[BenchmarkTarget, list[any]]]] = None
+                if method == Method.GRADIENT_DESCENT:
+                    res.methods.append(method)
+                    x_init = None
+                    if 'x_init' in params:
+                        x_init = params['x_init']
+                        params.pop('x_init')
+                    solver = jaxopt.GradientDescent(fun=self.problem.f, **params)
+                    sub = self.__run_solver(solver=solver, x_init=x_init, metrics=self.metrics, **params)
+                    data[Method.GRADIENT_DESCENT] = {self.problem: sub}
+            res.data = data
         return res
 
 
@@ -120,55 +112,24 @@ def test_local():
     problem = QuadraticProblem(n=n)
     benchamrk = Benchmark(
         problem=problem,
-        methods=[{Method.GRADIENT_DESCENT: {tol: 1e-5}}],
-        result_params=[
-            BenchmarkTarget.nit,
-            BenchmarkTarget.trajectory_x,
-            BenchmarkTarget.trajectory_f,
+        methods=[
+            {
+                Method.GRADIENT_DESCENT: {
+                    'x_init' : jnp.array([1., 1.]),
+                    'tol': 1e-2,
+                    'maxiter': 2500,
+                    'stepsize' : 1e-2
+                }
+            }
+        ],
+        metrics=[
+            "nit",
+            "history_x",
+            "history_f",
         ],
     )
-    """
-    параметры для метода (tol, maxiter, etc.) можно сделать полем класса 
-    Benchmark и задавать при инициализации экземпляра Benchmark как
-    benchamrk = Benchmark(
-        problem=problem,
-        methods=[Method.GRADIENT_DESCENT],
-        methods_params = {
-        Method.GRADIENT_DESCENT : {
-                                    x_init : x_init,
-                                    tol : 1e-5,
-                                    maxiter : 7
-                                    }
-        }
-        result_params=[BenchmarkTarget.nit, 
-                       BenchmarkTarget.trajectory_x, 
-                       BenchmarkTarget.trajectory_f]
-    )
-    
-    """
-    result = benchamrk.run(x_init=x_init, tol=1e-5, maxiter=7, stepsize=1e-2)
+    result = benchamrk.run()
     result.save("GD_quadratic.json")
-    """
-    $ cat GD_quadratic.json
-    {
-        "GRADIENT_DESCENT": {
-            "Quadratic problem": {
-                "trajectory_x": [
-                    "[0.01308137 0.08063173]",
-                    "[-0.3511476  -0.30047017]",
-                    "[-0.5099794 -0.5174094]",
-                    "[-0.48962325 -0.6391536 ]",
-                    "[-0.3664372  -0.74309134]",
-                    "[-0.31294745 -0.8298627 ]",
-                    "[-0.28392574 -0.88880813]"
-                ],
-                "nit": [
-                    "7"
-                ]
-            }
-        }
-    }
-    """
 
 
 if __name__ == "__main__":

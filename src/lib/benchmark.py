@@ -102,7 +102,8 @@ class Benchmark:
                         params.pop('x_init')
                     solver = jaxopt.GradientDescent(fun=self.problem.f, **params)
                     sub = self.__run_solver(solver=solver, x_init=x_init, metrics=self.metrics, **params)
-                    data[Method.GRADIENT_DESCENT] = {self.problem: sub}
+                    #data[Method.GRADIENT_DESCENT] = {self.problem: sub}
+                    data[self.problem] = {Method.GRADIENT_DESCENT : sub}
             res.data = data
         return res
 
@@ -120,7 +121,7 @@ def test_local():
                 Method.GRADIENT_DESCENT: {
                     'x_init' : x_init,
                     'tol': 1e-2,
-                    'maxiter': 2500,
+                    'maxiter': 7,
                     'stepsize' : 1e-2
                 }
             }

@@ -1,19 +1,19 @@
 from enum import Enum
 
+
 class BenchmarkTarget(Enum):
-    trajectory_x = 1,
-    trajectory_f = 2,
-    trajectory_df = 3,
-    nit = 4,
-    nfev = 5,
-    njev = 6,
-    nhev = 7,
-    errors = 8,
+    trajectory_x = (1,)
+    trajectory_f = (2,)
+    trajectory_df = (3,)
+    nit = (4,)
+    nfev = (5,)
+    njev = (6,)
+    nhev = (7,)
+    errors = (8,)
     time = 9
 
     def __str__(self) -> str:
         return self.name
-    
 
 
 def local_test():
@@ -22,4 +22,5 @@ def local_test():
     print(val)
     print(val2)
 
-#local_test()
+
+# local_test()

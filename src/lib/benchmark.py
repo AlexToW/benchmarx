@@ -12,22 +12,31 @@ from benchmark_result import BenchmarkResult
 
 class Benchmark:
     """
-    A class that provides the benchmarking of different optimization 
+    A class that provides the benchmarking of different optimization
     methods on a given problem (like Problem object).
     """
-    problem: Problem = None                         # Problem to solve
-    methods: list[Method] = None                   # Methods for benchmarking
-    result_params: list[BenchmarkTarget] = None     # List of fields to include in BenchamrkResult
 
-    def __init__(self, problem: Problem, methods: list[Method], result_params: list[BenchmarkTarget]) -> None:
+    problem: Problem = None  # Problem to solve
+    methods: list[Method] = None  # Methods for benchmarking
+    result_params: list[
+        BenchmarkTarget
+    ] = None  # List of fields to include in BenchamrkResult
+
+    def __init__(
+        self,
+        problem: Problem,
+        methods: list[Method],
+        result_params: list[BenchmarkTarget],
+    ) -> None:
         self.problem = problem
         self.methods = methods
         self.result_params = result_params
 
-    def __run_solver(self, solver, x_init, result_params: list[BenchmarkTarget], 
-                    *args, **kwargs) -> dict[BenchmarkTarget, list[any]]:
+    def __run_solver(
+        self, solver, x_init, result_params: list[BenchmarkTarget], *args, **kwargs
+    ) -> dict[BenchmarkTarget, list[any]]:
         """
-        A layer for pulling the necessary information according to result_params 
+        A layer for pulling the necessary information according to result_params
         as the "method" solver works (solver like jaxopt.GradientDescent obj)
         """
         result = dict()
@@ -79,14 +88,12 @@ class Benchmark:
         duration = time.time() - start_time
         if BenchmarkTarget.time in result_params:
             result[BenchmarkTarget.time] = [duration]
-        
+
         return result
 
     def run(self, x_init, *args, **kwargs) -> BenchmarkResult:
         res = BenchmarkResult(
-            problem=self.problem,
-            methods=self.methods,
-            keys=self.result_params
+            problem=self.problem, methods=self.methods, keys=self.result_params
         )
         data = dict()
         for method in self.methods:
@@ -98,24 +105,27 @@ class Benchmark:
                     x_init=x_init,
                     result_params=self.result_params,
                     args=args,
-                    kwargs=kwargs
+                    kwargs=kwargs,
                 )
-                data[Method.GRADIENT_DESCENT] = {self.problem : sub}
+                data[Method.GRADIENT_DESCENT] = {self.problem: sub}
         res.data = data
         return res
 
 
 def test_local():
     from quadratic_problem import QuadraticProblem
+
     n = 2
-    x_init = jnp.array([1., 1.])
+    x_init = jnp.array([1.0, 1.0])
     problem = QuadraticProblem(n=n)
     benchamrk = Benchmark(
         problem=problem,
-        methods=[Method.GRADIENT_DESCENT],
-        result_params=[BenchmarkTarget.nit, 
-                       BenchmarkTarget.trajectory_x, 
-                       BenchmarkTarget.trajectory_f]
+        methods=[{Method.GRADIENT_DESCENT: {tol: 1e-5}}],
+        result_params=[
+            BenchmarkTarget.nit,
+            BenchmarkTarget.trajectory_x,
+            BenchmarkTarget.trajectory_f,
+        ],
     )
     """
     параметры для метода (tol, maxiter, etc.) можно сделать полем класса 
@@ -136,8 +146,8 @@ def test_local():
     )
     
     """
-    result = benchamrk.run(x_init=x_init, tol=1e-5, maxiter=7)
-    result.save('GD_quadratic.json')
+    result = benchamrk.run(x_init=x_init, tol=1e-5, maxiter=7, stepsize=1e-2)
+    result.save("GD_quadratic.json")
     """
     $ cat GD_quadratic.json
     {
@@ -160,5 +170,6 @@ def test_local():
     }
     """
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     test_local()

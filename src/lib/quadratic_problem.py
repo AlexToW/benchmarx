@@ -4,7 +4,8 @@ import os
 
 
 from problem import Problem
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname('src'), '..')))
+
+sys.path.insert(1, os.path.abspath(os.path.join(os.path.dirname("src"), "..")))
 from defaults import *
 
 
@@ -13,10 +14,12 @@ class QuadraticProblem(Problem):
     A class describing an unconstrained quadratic problem:
     0.5 x^TAx^T + b^Tx, where the matrix A is positive defined, x \in R^n
     """
-    n: int = 1           # problem dimensionality
-    A = None             # A-matrix: np.array of shape (n,n)
-    b = None             # b-vector: np.array of shape (n,) 
-    def __init__(self, n: int = 2, A = None, b = None, info: str = 'Quadratic problem'):
+
+    n: int = 1  # problem dimensionality
+    A = None  # A-matrix: np.array of shape (n,n)
+    b = None  # b-vector: np.array of shape (n,)
+
+    def __init__(self, n: int = 2, A=None, b=None, info: str = "Quadratic problem"):
         self.n = n
 
         if A is None:
@@ -29,7 +32,7 @@ class QuadraticProblem(Problem):
         else:
             self.b = b
 
-        #func = lambda x: 0.5 * x.T @ self.A @ x + self.b.T @ x
+        # func = lambda x: 0.5 * x.T @ self.A @ x + self.b.T @ x
         super().__init__(info=info, func=self.f)
 
     def f(self, x, *args, **kwargs):
@@ -52,11 +55,12 @@ class QuadraticProblem(Problem):
         """
         key = jax.random.PRNGKey(default_seed)
         return jax.random.uniform(key, (n,))
-    
+
 
 def local_test():
     n = 3
     qp = QuadraticProblem(n=n)
-    print(qp.info, '\n', qp.A)
+    print(qp.info, "\n", qp.A)
 
-#local_test()
+
+# local_test()

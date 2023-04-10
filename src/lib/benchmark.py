@@ -117,6 +117,25 @@ def test_local():
                        BenchmarkTarget.trajectory_x, 
                        BenchmarkTarget.trajectory_f]
     )
+    """
+    параметры для метода (tol, maxiter, etc.) можно сделать полем класса 
+    Benchmark и задавать при инициализации экземпляра Benchmark как
+    benchamrk = Benchmark(
+        problem=problem,
+        methods=[Method.GRADIENT_DESCENT],
+        methods_params = {
+        Method.GRADIENT_DESCENT : {
+                                    x_init : x_init,
+                                    tol : 1e-5,
+                                    maxiter : 7
+                                    }
+        }
+        result_params=[BenchmarkTarget.nit, 
+                       BenchmarkTarget.trajectory_x, 
+                       BenchmarkTarget.trajectory_f]
+    )
+    
+    """
     result = benchamrk.run(x_init=x_init, tol=1e-5, maxiter=7)
     result.save('GD_quadratic.json')
     """

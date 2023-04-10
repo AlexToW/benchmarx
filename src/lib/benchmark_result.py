@@ -7,19 +7,18 @@ from problem import Problem
 
 
 class BenchmarkResult:
-    methods: list[Method] = None  # methods that have been benchmarked
-    metrics: list[
-        str
-    ] = None  # an array of fields that will be assigned to each of the methods from self.methods
+    #methods: list[Method] = None  # methods that have been benchmarked
+    methods: list[str] = None
+    metrics: list[str] = None  # an array of fields that will be assigned to each of the methods from self.methods
     problem: Problem = None  # the Problem on which the benchmarking was performed
-    data: dict[Problem, dict[Method, dict[str, list[any]]]] = None
-
+    #data: dict[Problem, dict[Method, dict[str, list[any]]]] = None
+    data: dict[Problem, dict[str, dict[str, list[any]]]] = None
     def __init__(
         self,
         problem: Problem,
-        methods: list[Method],
+        methods: list[str],
         metrics: list[str],
-        data: dict[Problem, dict[Method, dict[str, list[any]]]] = None,
+        data: dict[Problem, dict[str, dict[str, list[any]]]] = None,
     ) -> None:
         self.problem = problem
         self.methods = methods
@@ -32,15 +31,15 @@ class BenchmarkResult:
         """
         Saves benchmarking data to a json file by path.
         """
-        # dict[Problem, dict[Method, dict[str, list[any]]]]
+        # data: dict[Problem, dict[str, dict[str, list[any]]]]
         data_str = dict()
         for problem, ddict in self.data.items():
             tmp2 = dict()
             for method, dddict in ddict.items():
                 tmp1 = dict()
-                for target, lst in dddict.items():
-                    tmp1[str(target)] = [str(val) for val in lst]
-                tmp2[str(method)] = tmp1
+                for metric, lst in dddict.items():
+                    tmp1[str(metric)] = [str(val) for val in lst]
+                tmp2[method] = tmp1
             data_str[str(problem)] = tmp2
         with open(path, "w") as file:
             json.dump(data_str, file, indent=2)

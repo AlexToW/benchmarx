@@ -5,7 +5,7 @@ import jax.numpy as jnp
 import time
 
 from problem import Problem
-from methods import Method
+from methods import available_built_in_methods, check_method
 
 # from benchmark_target import BenchmarkTarget
 from metrics import *
@@ -19,17 +19,28 @@ class Benchmark:
     """
 
     problem: Problem = None  # Problem to solve
-    methods: list[dict[Method : dict[str:any]]] = None  # Methods for benchmarking
+    #methods: list[dict[Method : dict[str:any]]] = None  # Methods for benchmarking
+    methods: list[dict[str : dict[str:any]]] = None  # Methods for benchmarking
+    available_built_in_methods: list[str] = None # method's keywords. 
+    # If you want to call a method from the jaxopt, 
+    # the name of the method must begin with one of these keywords.
     metrics: list[str] = None  # List of fields to include in BenchamrkResult
 
     def __init__(
         self,
         problem: Problem,
-        methods: list[dict[Method : dict[str:any]]],
+        methods: list[dict[str : dict[str:any]]],
         metrics: list[str],
     ) -> None:
         self.problem = problem
+        methods_names = list()
+        for item in methods:
+            for name, params in item.items():
+                methods_names.append(name)
+        if not check_method(methods_names):
+            exit(1)
         self.methods = methods
+        self.available_built_in_methods = available_built_in_methods
         if not check_metric(metrics):
             exit(1)
         self.metrics = metrics
@@ -90,21 +101,21 @@ class Benchmark:
     def run(self) -> BenchmarkResult:
         res = BenchmarkResult(problem=self.problem, methods=list(), metrics=self.metrics)
         data = dict()
-        # methods: list[dict[Method : dict[str:any]]]
+        data[self.problem] = dict()
+        # methods: list[dict[method(str) : dict[str:any]]]
         for item in self.methods:
             for method, params in item.items():
-                # data: dict[Method, dict[Problem, dict[BenchmarkTarget, list[any]]]] = None
-                if method == Method.GRADIENT_DESCENT:
+                # data: dict[Problem, dict[method(str), dict[str, list[any]]]]
+                if method.startswith('GRADIENT_DESCENT'):
                     res.methods.append(method)
                     x_init = None
                     if 'x_init' in params:
                         x_init = params['x_init']
                         params.pop('x_init')
                     solver = jaxopt.GradientDescent(fun=self.problem.f, **params)
-                    print(solver)
-                    sub = self.__run_solver(solver=solver, x_init=x_init, metrics=self.metrics, **params)
-                    data[self.problem] = {Method.GRADIENT_DESCENT : sub}
-            res.data = data
+                    sub = self.__run_solver(solver=solver, x_init=x_init, metrics=self.metrics, **params)    
+                    data[self.problem][method] = sub
+        res.data = data
         return res
 
 
@@ -116,21 +127,21 @@ def test_local():
     problem = QuadraticProblem(n=n)
     benchamrk = Benchmark(
         problem=problem,
-        # methods: list[dict[Method : dict[str:any]]]
+        # methods: list[dict[method(str) : dict[str:any]]]
         methods=[
             {
-                Method.GRADIENT_DESCENT: {
+                'GRADIENT_DESCENT_const_step': {
                     'x_init' : x_init,
                     'tol': 1e-2,
-                    'maxiter': 7,
+                    'maxiter': 11,
                     'stepsize' : 1e-2
                 }
             },
             {
-                Method.GRADIENT_DESCENT: {
+                'GRADIENT_DESCENT_adaptive_step': {
                     'x_init' : x_init,
                     'tol': 1e-2,
-                    'maxiter': 10,
+                    'maxiter': 11,
                     'stepsize' : lambda iter_num: 1 / (iter_num + 20)
                 }
             }

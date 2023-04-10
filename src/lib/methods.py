@@ -1,12 +1,30 @@
 from enum import Enum
 
 
+available_built_in_methods = [
+    'GRADIENT_DESCENT',
+    'STEEPEST_DESCENT',
+    'NEWTON',
+    'DAMPED_NEWTON',
+    'CONJUGATE_GRADIENTS'
+]
+
+def check_method(methods: list[str]):
+    for method in methods:
+        for avail_method in available_built_in_methods:
+            if method.startswith(avail_method):
+                return True
+    print(f'Unsupported built in method \'{method}\'. Available built in methods: {available_built_in_methods}')
+    return False
+
+
 class Method(Enum):
-    GRADIENT_DESCENT = (1,)
-    STEEPEST_DESCENT = (2,)
-    NEWTON = (3,)
-    DAMPED_NEWTON = (4,)
-    CONJUGATE_GRADIENTS = 5
+    GRADIENT_DESCENT = 'GRADIENT_DESCENT'
+    STEEPEST_DESCENT = 'STEEPEST_DESCENT'
+    NEWTON = 'NEWTON'
+    DAMPED_NEWTON = 'DAMPED_NEWTON'
+    CONJUGATE_GRADIENTS = 'CONJUGATE_GRADIENTS'
+
 
     def __str__(self) -> str:
         return f'{self.name}'

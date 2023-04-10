@@ -127,7 +127,6 @@ def test_local():
     problem = QuadraticProblem(n=n)
     benchamrk = Benchmark(
         problem=problem,
-        # methods: list[dict[method(str) : dict[str:any]]]
         methods=[
             {
                 'GRADIENT_DESCENT_const_step': {

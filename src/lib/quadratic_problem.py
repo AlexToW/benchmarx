@@ -1,7 +1,7 @@
 import jax
 import sys
 import os
-
+import jax.numpy as jnp
 
 from problem import Problem
 

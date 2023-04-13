@@ -1,7 +1,7 @@
 import json
+import wandb
 
 
-from methods import Method
 from metrics import *
 from problem import Problem
 
@@ -45,7 +45,31 @@ class BenchmarkResult:
             json.dump(data_str, file, indent=2)
 
     def send_wandb(self):
-        pass
+        """
+        In progress.
+        """
+        # 1. Start a W&B Run
+        run = wandb.init(
+            project="Benchmarx",
+            notes="My first experiment",
+            tags=["Gradient descent", "Quadratic problem"]
+        )
+        wandb.config = {
+            "maxiter": 1000, 
+            "learning_rate": 0.01, 
+            "tol": 1e-5
+        }
+        #wan_data = dict()
+        history_f_const = self.data[self.problem]['GRADIENT_DESCENT_const_step']['history_f']
+        for n in range(len(history_f_const)):
+            #wan_data[n] = history_f[n]
+            wandb.log({"f_const" : history_f_const[n]})
+        history_f_adapt = self.data[self.problem]['GRADIENT_DESCENT_adaptive_step']['history_f']
+        for n in range(len(history_f_adapt)):
+            wandb.log({"f_adapt" : history_f_adapt[n]})
+        wandb.finish()
+        
 
     def __str__(self) -> str:
         return ""
+

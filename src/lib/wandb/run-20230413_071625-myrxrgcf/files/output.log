@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "/Users/aleksandrtrisin/Documents/6 семестр/метопты/Benchmark_Opt/src/lib/test.py", line 50, in <module>
+    _main()
+  File "/Users/aleksandrtrisin/Documents/6 семестр/метопты/Benchmark_Opt/src/lib/test.py", line 44, in _main
+    result.send_wandb()
+  File "/Users/aleksandrtrisin/Documents/6 семестр/метопты/Benchmark_Opt/src/lib/benchmark_result.py", line 59, in send_wandb
+    wandb.log({"history_f" : self.data['GRADIENT_DESCENT_const_step']['history_f']})
+                             ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyError: 'GRADIENT_DESCENT_const_step'

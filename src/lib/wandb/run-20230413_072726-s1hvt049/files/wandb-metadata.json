@@ -1,0 +1,34 @@
+{
+    "os": "macOS-13.3-arm64-arm-64bit",
+    "python": "3.11.3",
+    "heartbeatAt": "2023-04-13T04:27:27.633020",
+    "startedAt": "2023-04-13T04:27:26.929518",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "/Users/aleksandrtrisin/Documents/6 \u0441\u0435\u043c\u0435\u0441\u0442\u0440/\u043c\u0435\u0442\u043e\u043f\u0442\u044b/Benchmark_Opt/src/lib/test.py",
+    "codePath": "src/lib/test.py",
+    "git": {
+        "remote": "git@github.com:AlexToW/Benchmark_Opt.git",
+        "commit": "272187e3ad6d8f5b389d4540fd4e26fb8fa35da3"
+    },
+    "email": null,
+    "root": "/Users/aleksandrtrisin/Documents/6 \u0441\u0435\u043c\u0435\u0441\u0442\u0440/\u043c\u0435\u0442\u043e\u043f\u0442\u044b/Benchmark_Opt",
+    "host": "MacBook-Pro-Aleksandr-2.local",
+    "username": "aleksandrtrisin",
+    "executable": "/opt/homebrew/opt/python@3.11/bin/python3.11",
+    "cpu_count": 10,
+    "cpu_count_logical": 10,
+    "disk": {
+        "total": 460.4317207336426,
+        "used": 8.90667724609375
+    },
+    "gpuapple": {
+        "type": "arm",
+        "vendor": "Apple"
+    },
+    "memory": {
+        "total": 16.0
+    }
+}

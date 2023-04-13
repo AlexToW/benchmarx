@@ -39,6 +39,7 @@ class QuadraticProblem(Problem):
         """
         Quadratic function
         """
+        x = jnp.array(x)
         return 0.5 * x.T @ self.A @ x + self.b.T @ x
 
     def __get_random_matrix(self, n: int = 2):

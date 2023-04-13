@@ -5,3 +5,5 @@ test.ipynb
 questions.txt
 test.py
 .vscode
+*wandb*
+/src/lib/wandb

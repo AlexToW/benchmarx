@@ -1,7 +1,8 @@
 import json
 import wandb
 
-
+import jax
+import jax.numpy as jnp
 from metrics import *
 from problem import Problem
 
@@ -59,14 +60,32 @@ class BenchmarkResult:
             "learning_rate": 0.01, 
             "tol": 1e-5
         }
-        #wan_data = dict()
-        history_f_const = self.data[self.problem]['GRADIENT_DESCENT_const_step']['history_f']
-        for n in range(len(history_f_const)):
-            #wan_data[n] = history_f[n]
-            wandb.log({"f_const" : history_f_const[n]})
-        history_f_adapt = self.data[self.problem]['GRADIENT_DESCENT_adaptive_step']['history_f']
-        for n in range(len(history_f_adapt)):
-            wandb.log({"f_adapt" : history_f_adapt[n]})
+        history_f_const = list()
+        for item in self.data[self.problem]['GRADIENT_DESCENT_const_step']['history_x']:
+            l = jnp.array(item)
+            p = self.problem.f(jnp.array([l[i] for i in range(len(l))]))
+            history_f_const.append(p)
+        
+        history_f_adapt = list()
+        for item in self.data[self.problem]['GRADIENT_DESCENT_adaptive_step']['history_x']:
+            l = jnp.array(item)
+            p = self.problem.f(jnp.array([l[i] for i in range(len(l))]))
+            history_f_adapt.append(p)
+        
+        data = [[x, y] for (x, y) in zip(range(1, len(history_f_const) + 1), history_f_const)]
+        for item in data:
+            wandb.log({'GD_const' : {'f' : item[1]}})
+        
+        data = [[x, y] for (x, y) in zip(range(1, len(history_f_adapt) + 1), history_f_adapt)]
+        '''
+        table = wandb.Table(data=data, columns = ["x", "y"])
+        wandb.log({"GD_adapt_step" : wandb.plot.line(table, "f", "nit",
+           title="GD_adapt_step")})
+        '''
+
+        for item in data:
+            wandb.log({'GD_adapt' : {'f' : item[1]}})
+
         wandb.finish()
         
 

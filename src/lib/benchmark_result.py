@@ -75,16 +75,6 @@ class BenchmarkResult:
         data = [[x, y] for (x, y) in zip(range(1, len(history_f_const) + 1), history_f_const)]
         for item in data:
             wandb.log({'GD_const' : {'f' : item[1]}})
-        
-        data = [[x, y] for (x, y) in zip(range(1, len(history_f_adapt) + 1), history_f_adapt)]
-        '''
-        table = wandb.Table(data=data, columns = ["x", "y"])
-        wandb.log({"GD_adapt_step" : wandb.plot.line(table, "f", "nit",
-           title="GD_adapt_step")})
-        '''
-
-        for item in data:
-            wandb.log({'GD_adapt' : {'f' : item[1]}})
 
         wandb.finish()
         

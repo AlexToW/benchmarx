@@ -58,18 +58,26 @@ class Benchmark:
         sol = x_init
         x_prev = sol
 
-        @jax.jit
+        #@jax.jit
         def jitted_update(sol, state):
             return solver.update(sol, state, *args, **kwargs)
 
-        tol = None
-        if 'tol' in kwargs:
-            tol = kwargs['tol']
 
-        for _ in range(solver.maxiter):
-            """
-            Add stop criterion!!!
-            """
+        def stop_criterion(a, b, tol):
+            return jnp.linalg.norm(a - b)**2 < tol
+
+        tol = kwargs['tol']
+        custom_criterion = hasattr(type(solver), 'stop_criterion')
+        if  custom_criterion:
+            solver.tol = tol
+    
+        for i in range(solver.maxiter):
+            if i > 0:
+                if stop_criterion(x_prev, sol, tol) and not custom_criterion:
+                    break
+                if custom_criterion and solver.stop_criterion():
+                    break
+                
             x_prev = sol
             sol, state = jitted_update(sol, state)
             if "history_x" in metrics:
@@ -128,7 +136,7 @@ class Benchmark:
                     res.methods.append(method)
                     x_init = None
                     if 'x_init' in params:
-                        x_init = params['x_init']
+                        x_init = jnp.array(params['x_init'])
                         params.pop('x_init')
                     sub = self.__run_solver(solver=user_method, metrics=self.metrics, x_init=x_init, **params)
                     data[self.problem][method] = sub

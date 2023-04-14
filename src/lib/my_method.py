@@ -8,9 +8,14 @@ from benchmark import Benchmark
 
 
 class MyGradientDescent:
+    """
+    Must have the following fields:
+        tol: float
+    """
     def __init__(self, fun, x_init, stepsize, maxiter: int = 1000, tol=1e-5) -> None:
         self.x_init = x_init
         self.x = x_init
+        self.x_prev = x_init
         self.fun = fun
         self.stepsize = stepsize
         self.maxiter = maxiter
@@ -22,26 +27,33 @@ class MyGradientDescent:
         return self.x, self.x
     
     def update(self, sol, state, *args, **kwargs):
+        self.x_prev = self.x
         self.nit += 1
         self.stepsize = 1 / (self.nit + 20)
-        self.x = sol - self.stepsize * grad(self.fun)(sol)
+        self.x = self.x - self.stepsize * grad(self.fun)(self.x)
         return self.x, self.x
+    
+    def stop_criterion(self):
+        """
+        returns True for stop
+        """
+        return float(jnp.linalg.norm(self.x - self.x_prev))**2 < self.tol
     
 
 def test_local():
     n = 2
-    x_init = jnp.array([1.0, 1.0])
+    x_init = jnp.array([2.0, 1.0])
     problem = QuadraticProblem(n=n)
     benchamrk = Benchmark(
         problem=problem,
         methods=[
             {
-                'MY_GRADIENT_DESCENT': {'x_init' : x_init, 'tol' : 1e-5}
+                'MY_GRADIENT_DESCENT': {'x_init' : x_init, 'tol' : 1e-4}
             },
             {
                 'GRADIENT_DESCENT_adaptive_step': {
                     'x_init' : x_init,
-                    'tol': 1e-7,
+                    'tol': 1e-4,
                     'maxiter': 1000,
                     'stepsize' : lambda iter_num: 1 / (iter_num + 20)
                 }
@@ -57,4 +69,6 @@ def test_local():
     result = benchamrk.run(user_method=my_solver)
     result.save("GD_quadratic.json")
 
-test_local()
+
+if __name__ == '__main__':
+    test_local()

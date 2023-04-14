@@ -3,7 +3,7 @@ from jax import grad
 import jax.numpy as jnp
 
 
-from quadratic_problem import QuadraticProblem
+from problems.quadratic_problem import QuadraticProblem
 from benchmark import Benchmark
 
 
@@ -11,6 +11,10 @@ class MyGradientDescent:
     """
     Must have the following fields:
         tol: float
+    Must have the following methods:
+        init_state
+        update
+        stop_criterion
     """
     def __init__(self, fun, x_init, stepsize, maxiter: int = 1000, tol=1e-5) -> None:
         self.x_init = x_init

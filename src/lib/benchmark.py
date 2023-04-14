@@ -58,8 +58,11 @@ class Benchmark:
         sol = x_init
         x_prev = sol
 
-        #@jax.jit
+        @jax.jit
         def jitted_update(sol, state):
+            return solver.update(sol, state, *args, **kwargs)
+        
+        def update(sol, state):
             return solver.update(sol, state, *args, **kwargs)
 
 
@@ -67,19 +70,22 @@ class Benchmark:
             return jnp.linalg.norm(a - b)**2 < tol
 
         tol = kwargs['tol']
-        custom_criterion = hasattr(type(solver), 'stop_criterion')
-        if  custom_criterion:
+        custom_method = hasattr(type(solver), 'stop_criterion')
+        if  custom_method:
             solver.tol = tol
     
         for i in range(solver.maxiter):
             if i > 0:
-                if stop_criterion(x_prev, sol, tol) and not custom_criterion:
+                if stop_criterion(x_prev, sol, tol) and not custom_method:
                     break
-                if custom_criterion and solver.stop_criterion():
+                if custom_method and solver.stop_criterion():
                     break
                 
             x_prev = sol
-            sol, state = jitted_update(sol, state)
+            if custom_method:
+                sol, state = update(sol, state)
+            else:
+                sol, state = jitted_update(sol, state)
             if "history_x" in metrics:
                 if not "history_x" in result:
                     result["history_x"] = [sol]

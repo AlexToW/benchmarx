@@ -48,7 +48,7 @@ def test_local():
     n = 2
     x_init = jnp.array([2.0, 1.0])
     problem = QuadraticProblem(n=n)
-    benchamrk = Benchmark(
+    benchmark = Benchmark(
         problem=problem,
         methods=[
             {
@@ -70,7 +70,7 @@ def test_local():
         ],
     )
     my_solver = MyGradientDescent(fun=problem.f, x_init=x_init, maxiter=1000, stepsize=1e-2)
-    result = benchamrk.run(user_method=my_solver)
+    result = benchmark.run(user_method=my_solver)
     result.save("GD_quadratic.json")
 
 

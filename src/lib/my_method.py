@@ -43,7 +43,6 @@ class MyGradientDescent(custom_optimizer.CustomOptimizer):
         return sol, state
     
     def stop_criterion(self, sol, state: custom_optimizer.State) -> bool:
-        #return state.iter_num > self.maxiter
         return jnp.linalg.norm(grad(self.problem.f)(sol))**2 < self.tol
 
 

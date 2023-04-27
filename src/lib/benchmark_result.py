@@ -5,6 +5,7 @@ import jax
 import jax.numpy as jnp
 from metrics import *
 from problem import Problem
+import metrics
 
 
 class BenchmarkResult:
@@ -38,8 +39,11 @@ class BenchmarkResult:
             tmp2 = dict()
             for method, dddict in ddict.items():
                 tmp1 = dict()
-                for metric, lst in dddict.items():
-                    tmp1[str(metric)] = [str(val) for val in lst]
+                for field, d in dddict.items():
+                    if str(field) in metrics.available_metrics:
+                        tmp1[str(field)] = [str(val) for val in d]
+                    if str(field) == 'hyperparams':
+                        tmp1['hyperparams'] = {key: str(val) for key, val in d.items()}
                 tmp2[method] = tmp1
             data_str[str(problem)] = tmp2
         with open(path, "w") as file:

@@ -79,7 +79,7 @@ class Benchmark:
         if not custom_optimizer and 'tol' in kwargs:
             tol = kwargs['tol']
         
-        print(tol)
+        #print(tol)
         for i in range(solver.maxiter):
             if i > 0:
                 if not custom_method and stop_criterion(state.error, tol):
@@ -143,6 +143,8 @@ class Benchmark:
                         params.pop('x_init')
                     solver = jaxopt.GradientDescent(fun=self.problem.f, **params)
                     sub = self.__run_solver(solver=solver, x_init=x_init, metrics=self.metrics, **params)    
+                    params['x_init'] = x_init
+                    sub['hyperparams'] = params
                     data[self.problem][method] = sub
                 elif user_method is not None:
                     res.methods.append(method)
@@ -151,6 +153,7 @@ class Benchmark:
                         x_init = jnp.array(params['x_init'])
                         params.pop('x_init')
                     sub = self.__run_solver(solver=user_method, metrics=self.metrics, x_init=x_init, **params)
+                    sub['hyperparams'] = user_method.params
                     data[self.problem][method] = sub
         res.data = data
         return res

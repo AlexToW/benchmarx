@@ -61,6 +61,9 @@ class BenchmarkResult:
                     tmp1 = {'hyperparams': hyper_dict, 'runs': runs_dict}
                 tmp2[method] = tmp1
             data_str[str(problem)] = tmp2
+
+            if self.problem.x_opt is not None:
+                data_str[str(problem)]['x_opt'] = str(self.problem.x_opt)
         with open(path, "w") as file:
             json.dump(data_str, file, indent=2)
 

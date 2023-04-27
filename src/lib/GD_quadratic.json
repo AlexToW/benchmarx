@@ -205,7 +205,7 @@
       "hyperparams": {
         "tol": "0.001",
         "maxiter": "1000",
-        "stepsize": "<function test_local.<locals>.<lambda> at 0x17f27a520>",
+        "stepsize": "<function test_local.<locals>.<lambda> at 0x13afd1b20>",
         "x_init": "[2. 1.]",
         "label": "jaxopt.GradientDescent",
         "seed": "1438"
@@ -609,6 +609,7 @@
           "nit": "195"
         }
       }
-    }
+    },
+    "x_opt": "[-0.2964677  -0.88001615]"
   }
 }

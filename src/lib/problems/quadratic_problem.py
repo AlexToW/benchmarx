@@ -34,6 +34,8 @@ class QuadraticProblem(Problem):
 
         # func = lambda x: 0.5 * x.T @ self.A @ x + self.b.T @ x
         super().__init__(info=info, func=self.f)
+        if jnp.linalg.det(self.A + self.A.T) != 0:
+            self.x_opt = -2 * jnp.linalg.inv(self.A + self.A.T) @ self.b
 
     def f(self, x, *args, **kwargs):
         """

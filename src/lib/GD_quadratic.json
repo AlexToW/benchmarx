@@ -197,9 +197,7 @@
             "-0.4100375",
             "-0.41004843"
           ],
-          "nit": [
-            "91"
-          ]
+          "nit": "91"
         }
       }
     },
@@ -207,7 +205,7 @@
       "hyperparams": {
         "tol": "0.001",
         "maxiter": "1000",
-        "stepsize": "<function test_local.<locals>.<lambda> at 0x15767a480>",
+        "stepsize": "<function test_local.<locals>.<lambda> at 0x17f27a520>",
         "x_init": "[2. 1.]",
         "label": "jaxopt.GradientDescent",
         "seed": "1438"
@@ -608,9 +606,7 @@
             "-0.4105152",
             "-0.41051516"
           ],
-          "nit": [
-            "195"
-          ]
+          "nit": "195"
         }
       }
     }

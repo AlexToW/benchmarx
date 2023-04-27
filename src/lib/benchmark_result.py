@@ -52,7 +52,10 @@ class BenchmarkResult:
                             metric_lst_str = list()
                             for metric, metric_lst in run_dict.items():
                                 metric_lst_str = [str(val) for val in metric_lst]
-                                run_num_dict_str[str(metric)] = metric_lst_str
+                                if len(metric_lst_str) > 1:
+                                    run_num_dict_str[str(metric)] = metric_lst_str
+                                else:
+                                    run_num_dict_str[str(metric)] = metric_lst_str[0]
                             runs_dict[str(run_num)] = run_num_dict_str
                     
                     tmp1 = {'hyperparams': hyper_dict, 'runs': runs_dict}

@@ -39,10 +39,12 @@ class MyGradientDescent(custom_optimizer.CustomOptimizer):
     def update(self, sol, state: custom_optimizer.State) -> tuple([jnp.array, custom_optimizer.State]):
         sol -= state.stepsize * grad(self.problem.f)(sol)
         state.iter_num += 1
+        state.stepsize = 1 / (state.iter_num + 1)
         return sol, state
     
-    def stop_criterion(self, state: custom_optimizer.State) -> bool:
-        return state.iter_num > self.maxiter
+    def stop_criterion(self, sol, state: custom_optimizer.State) -> bool:
+        #return state.iter_num > self.maxiter
+        return jnp.linalg.norm(grad(self.problem.f)(sol))**2 < self.tol
 
 
     
@@ -60,9 +62,9 @@ def test_local():
             {
                 'GRADIENT_DESCENT_adaptive_step': {
                     'x_init' : x_init,
-                    'tol': 1e-4,
+                    'tol': 1e-3,
                     'maxiter': 1000,
-                    'stepsize' : lambda iter_num: 1 / (iter_num + 20)
+                    'stepsize' : lambda iter_num: 1 / (iter_num + 1)
                 }
             }
         ],

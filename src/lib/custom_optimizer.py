@@ -45,7 +45,7 @@ class CustomOptimizer:
         return self.x_init, state
 
 
-    def stop_criterion(self, state: State) -> bool:
+    def stop_criterion(self, sol, state: State) -> bool:
         """
         Returns True if it's time to stop.
         """

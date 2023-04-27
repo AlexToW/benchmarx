@@ -71,19 +71,20 @@ class Benchmark:
             return solver.update(sol, state, *args, **kwargs)
 
 
-        def stop_criterion(a, b, tol):
-            return jnp.linalg.norm(a - b)**2 < tol
+        def stop_criterion(err, tol):
+            return err < tol
 
-        tol = 1
+        tol = 1e-3
         
         if not custom_optimizer and 'tol' in kwargs:
             tol = kwargs['tol']
-
+        
+        print(tol)
         for i in range(solver.maxiter):
             if i > 0:
-                if not custom_method and stop_criterion(x_prev, sol, tol):
+                if not custom_method and stop_criterion(state.error, tol):
                     break
-                if custom_method and solver.stop_criterion(state):
+                if custom_method and solver.stop_criterion(sol, state):
                     break
             x_prev = sol
             if custom_method:

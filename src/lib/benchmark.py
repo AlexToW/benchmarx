@@ -5,10 +5,10 @@ import jax.numpy as jnp
 import time
 
 from problem import Problem
-from methods import available_built_in_methods, check_method
+import methods
 
 # from benchmark_target import BenchmarkTarget
-from metrics import *
+import metrics
 from benchmark_result import BenchmarkResult
 
 
@@ -19,7 +19,6 @@ class Benchmark:
     """
 
     problem: Problem = None  # Problem to solve
-    #methods: list[dict[Method : dict[str:any]]] = None  # Methods for benchmarking
     methods: list[dict[str : dict[str:any]]] = None  # Methods for benchmarking
     available_built_in_methods: list[str] = None # method's keywords. 
     # If you want to call a method from the jaxopt, 
@@ -37,11 +36,11 @@ class Benchmark:
         for item in methods:
             for name, params in item.items():
                 methods_names.append(name)
-        if not check_method(methods_names):
+        if not methods.check_method(methods_names):
             exit(1)
         self.methods = methods
-        self.available_built_in_methods = available_built_in_methods
-        if not check_metric(metrics):
+        self.available_built_in_methods = methods.available_built_in_methods
+        if not metrics.check_metric(metrics):
             exit(1)
         self.metrics = metrics
 
@@ -50,7 +49,8 @@ class Benchmark:
     ) -> dict[str, list[any]]:
         """
         A layer for pulling the necessary information according to metrics
-        as the "method" solver works (solver like jaxopt.GradientDescent obj)
+        as the "method" solver works (solver like jaxopt.GradientDescent obj
+        or or an heir to the CustomOptimizer class)
         """
         result = dict()
         start_time = time.time()
@@ -151,7 +151,7 @@ class Benchmark:
 
 
 def test_local():
-    from quadratic_problem import QuadraticProblem
+    from problems.quadratic_problem import QuadraticProblem
 
     n = 2
     x_init = jnp.array([1.0, 1.0])

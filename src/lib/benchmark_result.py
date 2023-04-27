@@ -39,11 +39,23 @@ class BenchmarkResult:
             tmp2 = dict()
             for method, dddict in ddict.items():
                 tmp1 = dict()
+                hyper_dict = dict()
+                runs_dict = dict()
                 for field, d in dddict.items():
-                    if str(field) in metrics.available_metrics:
-                        tmp1[str(field)] = [str(val) for val in d]
+                    # field is 'hyperparams' or 'runs'.
                     if str(field) == 'hyperparams':
-                        tmp1['hyperparams'] = {key: str(val) for key, val in d.items()}
+                        hyper_dict = {key: str(val) for key, val in d.items()}
+
+                    if str(field) == 'runs':
+                        for run_num, run_dict in d.items():
+                            run_num_dict_str = dict()
+                            metric_lst_str = list()
+                            for metric, metric_lst in run_dict.items():
+                                metric_lst_str = [str(val) for val in metric_lst]
+                                run_num_dict_str[str(metric)] = metric_lst_str
+                            runs_dict[str(run_num)] = run_num_dict_str
+                    
+                    tmp1 = {'hyperparams': hyper_dict, 'runs': runs_dict}
                 tmp2[method] = tmp1
             data_str[str(problem)] = tmp2
         with open(path, "w") as file:

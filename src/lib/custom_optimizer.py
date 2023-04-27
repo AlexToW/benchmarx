@@ -21,6 +21,7 @@ class CustomOptimizer:
     """
     params: Any         # hyperparams
     x_init: jnp.array   # initial point
+    label: str          # label (for plots?)
     #x_tmp: jnp.array    # tmp point
     def __init__(self, params: Any, x_init: jnp.array, label: str) -> None:
         self.params = params

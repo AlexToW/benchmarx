@@ -19,6 +19,7 @@ class Benchmark:
     methods on a given problem (like Problem object).
     """
 
+    runs: int = 1       # the number of runs of each method
     problem: Problem = None  # Problem to solve
     methods: list[dict[str : dict[str:any]]] = None  # Methods for benchmarking
     available_built_in_methods: list[str] = None # method's keywords. 
@@ -31,7 +32,9 @@ class Benchmark:
         problem: Problem,
         methods: list[dict[str : dict[str:any]]],
         metrics: list[str],
+        runs: int = 1
     ) -> None:
+        self.runs = runs
         self.problem = problem
         methods_names = list()
         for item in methods:
@@ -138,23 +141,44 @@ class Benchmark:
                 if method.startswith('GRADIENT_DESCENT'):
                     res.methods.append(method)
                     x_init = None
+                    label = 'jaxopt.GradientDescent'
+                    seed = str(self.problem.seed)
                     if 'x_init' in params:
                         x_init = params['x_init']
                         params.pop('x_init')
-                    solver = jaxopt.GradientDescent(fun=self.problem.f, **params)
-                    sub = self.__run_solver(solver=solver, x_init=x_init, metrics=self.metrics, **params)    
+                    if 'label' in params:
+                        label = params['label']
+                        params.pop('label')
+                    if 'seed' in params:
+                        seed = params['seed']
+                        params.pop('seed')
+                    runs_dict = dict()
+                    for run in range(self.runs):
+                        solver = jaxopt.GradientDescent(fun=self.problem.f, **params)
+                        sub = self.__run_solver(solver=solver, x_init=x_init, metrics=self.metrics, **params)    
+                        runs_dict[f'run_{run}'] = sub
                     params['x_init'] = x_init
-                    sub['hyperparams'] = params
-                    data[self.problem][method] = sub
+                    params['label'] = label
+                    params['seed'] = seed
+                    data[self.problem][method] = {'hyperparams': params, 'runs': runs_dict}
+
                 elif user_method is not None:
                     res.methods.append(method)
                     x_init = None
                     if 'x_init' in params:
                         x_init = jnp.array(params['x_init'])
                         params.pop('x_init')
-                    sub = self.__run_solver(solver=user_method, metrics=self.metrics, x_init=x_init, **params)
-                    sub['hyperparams'] = user_method.params
-                    data[self.problem][method] = sub
+                    runs_dict = dict()
+                    for run in range(self.runs):
+                        sub = self.__run_solver(solver=user_method, metrics=self.metrics, x_init=x_init, **params)
+                        runs_dict[f'run_{run}'] = sub
+                    params_to_write = user_method.params
+                    if 'x_init' not in params_to_write:
+                        params_to_write['x_init'] = user_method.x_init
+                    params_to_write['label'] = user_method.label
+                    params_to_write['seed'] = self.problem.seed
+                    data[self.problem][method] = {'hyperparams': params_to_write, 'runs': runs_dict}
+
         res.data = data
         return res
 

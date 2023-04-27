@@ -18,7 +18,7 @@ class QuadraticProblem(Problem):
     n: int = 1  # problem dimensionality
     A = None  # A-matrix: np.array of shape (n,n)
     b = None  # b-vector: np.array of shape (n,)
-
+    seed = default_seed
     def __init__(self, n: int = 2, A=None, b=None, info: str = "Quadratic problem"):
         self.n = n
 

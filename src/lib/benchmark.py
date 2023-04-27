@@ -5,11 +5,12 @@ import jax.numpy as jnp
 import time
 
 from problem import Problem
-import methods
+import methods as _methods
 
 # from benchmark_target import BenchmarkTarget
-import metrics
+import metrics as _metrics
 from benchmark_result import BenchmarkResult
+import custom_optimizer
 
 
 class Benchmark:
@@ -36,11 +37,11 @@ class Benchmark:
         for item in methods:
             for name, params in item.items():
                 methods_names.append(name)
-        if not methods.check_method(methods_names):
+        if not _methods.check_method(methods_names):
             exit(1)
         self.methods = methods
-        self.available_built_in_methods = methods.available_built_in_methods
-        if not metrics.check_metric(metrics):
+        self.available_built_in_methods = _methods.available_built_in_methods
+        if not _metrics.check_metric(metrics):
             exit(1)
         self.metrics = metrics
 
@@ -52,10 +53,14 @@ class Benchmark:
         as the "method" solver works (solver like jaxopt.GradientDescent obj
         or or an heir to the CustomOptimizer class)
         """
+        custom_method = issubclass(type(solver), custom_optimizer.CustomOptimizer)
         result = dict()
         start_time = time.time()
         state = solver.init_state(x_init, *args, **kwargs)
         sol = x_init
+        if custom_method and sol is None:
+            sol = solver.x_init
+        
         x_prev = sol
 
         @jax.jit
@@ -69,23 +74,23 @@ class Benchmark:
         def stop_criterion(a, b, tol):
             return jnp.linalg.norm(a - b)**2 < tol
 
-        tol = kwargs['tol']
-        custom_method = hasattr(type(solver), 'stop_criterion')
-        if  custom_method:
-            solver.tol = tol
-    
+        tol = 1
+        
+        if not custom_optimizer and 'tol' in kwargs:
+            tol = kwargs['tol']
+
         for i in range(solver.maxiter):
             if i > 0:
-                if stop_criterion(x_prev, sol, tol) and not custom_method:
+                if not custom_method and stop_criterion(x_prev, sol, tol):
                     break
-                if custom_method and solver.stop_criterion():
+                if custom_method and solver.stop_criterion(state):
                     break
-                
             x_prev = sol
             if custom_method:
                 sol, state = update(sol, state)
             else:
                 sol, state = jitted_update(sol, state)
+
             if "history_x" in metrics:
                 if not "history_x" in result:
                     result["history_x"] = [sol]

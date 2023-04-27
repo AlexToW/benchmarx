@@ -5,43 +5,46 @@ import jax.numpy as jnp
 
 from problems.quadratic_problem import QuadraticProblem
 from benchmark import Benchmark
+import custom_optimizer
 
 
-class MyGradientDescent:
+class MyGradientDescent(custom_optimizer.CustomOptimizer):
     """
     Must have the following fields:
-        tol: float
+        label
     Must have the following methods:
         init_state
         update
         stop_criterion
     """
-    def __init__(self, fun, x_init, stepsize, maxiter: int = 1000, tol=1e-5) -> None:
-        self.x_init = x_init
-        self.x = x_init
-        self.x_prev = x_init
-        self.fun = fun
+    def __init__(self, x_init, stepsize, problem, tol=1e-6, maxiter=400, label = 'MyGD'):
+        params = {
+            'x_init': x_init,
+            'tol': tol,
+            'maxiter': maxiter,
+            'stepsize': stepsize
+        }
         self.stepsize = stepsize
+        self.problem = problem
         self.maxiter = maxiter
         self.tol = tol
-        self.nit = 1
+        super().__init__(params=params, x_init=x_init, label=label)
 
-    def init_state(self, x_init, *args, **kwargs):
-        self.x_init = x_init
-        return self.x, self.x
+    def init_state(self, x_init, *args, **kwargs) -> custom_optimizer.State:
+        return custom_optimizer.State(
+            iter_num=1,
+            stepsize=self.stepsize
+        )
     
-    def update(self, sol, state, *args, **kwargs):
-        self.x_prev = self.x
-        self.nit += 1
-        self.stepsize = 1 / (self.nit + 20)
-        self.x = self.x - self.stepsize * grad(self.fun)(self.x)
-        return self.x, self.x
+    def update(self, sol, state: custom_optimizer.State) -> tuple([jnp.array, custom_optimizer.State]):
+        sol -= state.stepsize * grad(self.problem.f)(sol)
+        state.iter_num += 1
+        return sol, state
     
-    def stop_criterion(self):
-        """
-        returns True for stop
-        """
-        return float(jnp.linalg.norm(self.x - self.x_prev))**2 < self.tol
+    def stop_criterion(self, state: custom_optimizer.State) -> bool:
+        return state.iter_num > self.maxiter
+
+
     
 
 def test_local():
@@ -52,7 +55,7 @@ def test_local():
         problem=problem,
         methods=[
             {
-                'MY_GRADIENT_DESCENT': {'x_init' : x_init, 'tol' : 1e-4}
+                'MY_GRADIENT_DESCENT': {}
             },
             {
                 'GRADIENT_DESCENT_adaptive_step': {
@@ -69,7 +72,14 @@ def test_local():
             "history_f",
         ],
     )
-    my_solver = MyGradientDescent(fun=problem.f, x_init=x_init, maxiter=1000, stepsize=1e-2)
+    my_solver = MyGradientDescent(
+        x_init=x_init,
+        stepsize=1e-2,
+        problem=problem,
+        tol=1e-3,
+        maxiter=500,
+        label='MyGradDescent'
+    )
     result = benchmark.run(user_method=my_solver)
     result.save("GD_quadratic.json")
 

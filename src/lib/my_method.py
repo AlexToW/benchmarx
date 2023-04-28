@@ -49,10 +49,11 @@ class MyGradientDescent(custom_optimizer.CustomOptimizer):
     
 
 def test_local():
-    n = 2
-    x_init = jnp.array([2.0, 1.0])
+    n = 3
+    x_init = jnp.array([2.0, 1.0, 0.0])
     problem = QuadraticProblem(n=n)
     benchmark = Benchmark(
+        runs=2,
         problem=problem,
         methods=[
             {

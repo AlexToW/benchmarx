@@ -31,6 +31,20 @@ class Plotter:
         self.data_path = data_path
         self.dir_path = dir_path
 
+
+    def _matrix_from_str(self, A_str: str):
+        """
+        A_str in format:
+        "[[0.96531415 0.84779143 0.72762513]\n [0.31114805 0.03425407 0.31510842]\n [0.12594318 0.42591357 0.8050107 ]]"
+        """
+        #pre_raws = A_str.split('\n')
+        pre_raws = [s.strip() for s in A_str.split('\n')]
+        if len(pre_raws) > 0 and pre_raws[0][0] == '[' and pre_raws[0][1] == '[':
+            pre_raws[0] = pre_raws[0][1:]
+        if len(pre_raws) > 0 and pre_raws[-1][-1] == ']' and pre_raws[-1][-2] == ']':
+            pre_raws[-1] = pre_raws[-1][:-1]
+        raws = [raw[1:-1].strip() for raw in pre_raws]
+        return jnp.array([jnp.fromstring(raw, sep=' ') for raw in raws])
     
     def _convert(self, val):
         """
@@ -93,8 +107,18 @@ class Plotter:
             raw_data = json.load(json_file)
 
         good_data = dict()
-        x_opt = None
         for problem, problem_dict in raw_data.items():
+            x_opt = None
+            A = None
+            b = None
+            if 'A' in raw_data[problem]:
+                #good_data[problem]['A'] = self._matrix_from_str(raw_data[problem]['A'])
+                A = self._matrix_from_str(raw_data[problem]['A'])
+                raw_data[problem].pop('A')
+            if 'b' in raw_data[problem]:
+                #good_data[problem]['b'] = jnp.fromstring(raw_data[problem]['b'][1:-1], sep=' ')
+                b = jnp.fromstring(raw_data[problem]['b'][1:-1], sep=' ')
+                raw_data[problem].pop('b')
             if 'x_opt' in raw_data[problem]:
                 #good_data[str(problem)]['x_opt'] = self._convert(raw_data[problem]['x_opt'])
                 #print(raw_data[problem]['x_opt'], type(raw_data[problem]['x_opt']))
@@ -122,6 +146,11 @@ class Plotter:
             good_data[str(problem)] = problem_dict_good
             if x_opt is not None:
                 good_data[str(problem)]['x_opt'] = x_opt
+            if A is not None:
+                good_data[problem]['A'] = A
+            if b is not None:
+                good_data[problem]['b'] = b
+            
 
         return good_data
 

@@ -5,6 +5,7 @@ import jax
 import jax.numpy as jnp
 from metrics import *
 from problem import Problem
+import problems.quadratic_problem
 import metrics
 
 
@@ -64,6 +65,10 @@ class BenchmarkResult:
 
             if self.problem.x_opt is not None:
                 data_str[str(problem)]['x_opt'] = str(self.problem.x_opt)
+            
+            if isinstance(problem, problems.quadratic_problem.QuadraticProblem):
+                data_str[str(problem)]['A'] = str(self.problem.A)
+                data_str[str(problem)]['b'] = str(self.problem.b)
         with open(path, "w") as file:
             json.dump(data_str, file, indent=2)
 

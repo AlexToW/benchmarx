@@ -112,16 +112,12 @@ class Plotter:
             A = None
             b = None
             if 'A' in raw_data[problem]:
-                #good_data[problem]['A'] = self._matrix_from_str(raw_data[problem]['A'])
                 A = self._matrix_from_str(raw_data[problem]['A'])
                 raw_data[problem].pop('A')
             if 'b' in raw_data[problem]:
-                #good_data[problem]['b'] = jnp.fromstring(raw_data[problem]['b'][1:-1], sep=' ')
                 b = jnp.fromstring(raw_data[problem]['b'][1:-1], sep=' ')
                 raw_data[problem].pop('b')
             if 'x_opt' in raw_data[problem]:
-                #good_data[str(problem)]['x_opt'] = self._convert(raw_data[problem]['x_opt'])
-                #print(raw_data[problem]['x_opt'], type(raw_data[problem]['x_opt']))
                 x_opt = self._convert(raw_data[problem]['x_opt'])
                 raw_data[problem].pop('x_opt')
 
@@ -150,9 +146,32 @@ class Plotter:
                 good_data[problem]['A'] = A
             if b is not None:
                 good_data[problem]['b'] = b
-            
 
         return good_data
+
+
+    def _get_fs(self, data: dict) -> dict:
+        """
+        Returns dict {method: [list[func vals run_0], ... ,list[func vals run_N]]}
+        """
+        result = dict()
+        for problem, problem_dict in data.items():
+            method_trg = dict()
+            for method, method_dict in problem_dict.items():
+                f_vals_vals = list()
+                if isinstance(method_dict, dict):
+                    for run_num, run_dict in method_dict['runs'].items():
+                        if 'history_f' in run_dict:
+                            f_vals_vals.append(run_dict['history_f'])
+                        else:
+                            print('Maaaan(')
+                            exit(1)
+                    method_trg[method] = f_vals_vals
+                result[problem] = method_trg
+        return result
+
+
+
 
     def plot(self, save: bool = True):
         """
@@ -163,7 +182,7 @@ class Plotter:
         data = self._sparse_data()
         for metric in self.metrics:
             if metric == 'fs':
-                pass
+                print(self._get_fs(data))
             if metric == 'xs_norm':
                 pass
             if metric == 'fs_dist_to_opt':
@@ -181,8 +200,8 @@ def test_local():
         metrics= ['fs'],
         data_path='/Users/aleksandrtrisin/Documents/6 семестр/метопты/Benchmark_Opt/src/lib/GD_quadratic.json'
     )
-
-    print(plotter._sparse_data())
+    plotter.plot()
+    #print(plotter._sparse_data())
 
 
 if __name__ == '__main__':

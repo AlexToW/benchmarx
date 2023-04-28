@@ -89,11 +89,6 @@ class Benchmark:
                     break
                 if custom_method and solver.stop_criterion(sol, state):
                     break
-            x_prev = sol
-            if custom_method:
-                sol, state = update(sol, state)
-            else:
-                sol, state = jitted_update(sol, state)
 
             if "history_x" in metrics:
                 if not "history_x" in result:
@@ -124,6 +119,11 @@ class Benchmark:
                     result["errors"] = [state.error]
                 else:
                     result["errors"].append(state.error)
+            x_prev = sol
+            if custom_method:
+                sol, state = update(sol, state)
+            else:
+                sol, state = jitted_update(sol, state)
         duration = time.time() - start_time
         if "time" in metrics:
             result["time"] = [duration]

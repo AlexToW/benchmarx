@@ -1,3 +1,14 @@
+# https://habr.com/ru/articles/502958/
+
+#=======================
+import plotly
+import plotly.graph_objs as go
+import plotly.express as px
+from plotly.subplots import make_subplots
+
+#import pandas as pd
+#=======================
+
 
 import json
 import re
@@ -71,7 +82,6 @@ class Plotter:
             # something went wrong
             print(f'Can\'t convert {val}')
             return 'wtf'
-
 
     def _sparse_data(self) -> dict:
         """

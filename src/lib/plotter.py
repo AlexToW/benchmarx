@@ -6,7 +6,7 @@ import plotly.graph_objs as go
 import plotly.express as px
 from plotly.subplots import make_subplots
 
-#import pandas as pd
+import pandas as pd
 #=======================
 
 
@@ -24,6 +24,7 @@ class Plotter:
     metrics: list[str]      # metrics to plot
     data_path: str          # path to a json file with the necessary data
     dir_path: str          # path to directory to save plots 
+    
     def __init__(self, metrics: list[str], data_path: str, dir_path: str = '.') -> None:
         if not _metrics.check_plot_metric(metrics):
             exit(1)
@@ -155,7 +156,6 @@ class Plotter:
 
         return good_data
 
-
     def _get_fs(self, data: dict) -> dict:
         """
         Returns dict {method_label: [list[func vals run_0], ... ,list[func vals run_N]]}
@@ -176,7 +176,6 @@ class Plotter:
                 result[problem] = method_trg
         return result
 
-
     def _get_xs_norms(self, data: dict) -> dict:
         """
         Returns dict {method_label: [list[xs norms run_0], ... ,list[xs norms run_N]]}
@@ -196,7 +195,6 @@ class Plotter:
                     method_trg[method_dict['hyperparams']['label']] = x_vals_runs
                 result[problem] = method_trg
         return result
-
 
     def _get_fs_dist_to_opt(self, data: dict) -> dict:
         """
@@ -221,7 +219,6 @@ class Plotter:
                     method_trg[method_dict['hyperparams']['label']] = dists_vals_runs
                 result[problem] = method_trg
         return result
-
 
     def _get_xs_dist_to_opt(self, data: dict) -> dict:
         """
@@ -269,6 +266,50 @@ class Plotter:
         return result
 
 
+    def _mean_std(self, data: dict) -> dict:
+        """
+        Average over runs
+        data like {'problem': {'method1': 
+        [[5.658613, 5.4881105] (run_list), [5.658613, 5.4881105]], 
+        'method2': [[5.658613, 5.4881105], [5.658613, 5.4881105]]}}
+        Returns:
+        {'problem': {'method1' : {'mean': mean_val, 'std': std_val},
+                     'method2' : {'mean': mean_val, 'std': std_val}}
+        """
+        '''
+        для каждого метода: усреднить по первой координате всех runs, 
+        по второй, и т.д. Массив усредненных значений есть mean_val.
+        Аналогично для std_val
+        '''
+        result = dict()
+        for problem, problem_dict in data.items():
+            trg_dict = dict()
+            for method, method_list in problem_dict.items():
+                mean_val = list()
+                std_val = list()
+                for k in range(len(method_list[0])):
+                    lst_to_mean_std = list()
+                    for run_lst in method_list:
+                        lst_to_mean_std.append(run_lst[k])
+                    mean_val.append(float(jnp.mean(jnp.array(lst_to_mean_std))))
+                    std_val.append(float(jnp.std(jnp.array(lst_to_mean_std))))
+                trg_dict[method] = {'mean' : mean_val, 'std' : std_val}
+            result[problem] = trg_dict
+        return result
+                
+
+
+
+    def _plot(self, data_to_plot: dict):
+        """
+        
+        data_to_plot:
+        {'problem': {'method1' : {'mean': mean_val(list), 'std': std_val(list)},
+                     'method2' : {'mean': mean_val(list), 'std': std_val(list)}}
+        """
+        pass
+
+
     def plot(self, save: bool = True):
         """
         Create plots according to the self.metrics. Saves to
@@ -279,6 +320,7 @@ class Plotter:
         for metric in self.metrics:
             if metric == 'fs':
                 print('fs', self._get_fs(data))
+                print('mean_std_fs', self._mean_std(self._get_fs(data)))
             if metric == 'xs_norm':
                 print('xs_norm', self._get_xs_norms(data))
             if metric == 'fs_dist_to_opt':
@@ -291,7 +333,8 @@ class Plotter:
 
 def test_local():
     plotter = Plotter(
-        metrics= ['fs', 'xs_norm', 'fs_dist_to_opt', 'xs_dist_to_opt', 'grads_norm'],
+        #metrics= ['fs', 'xs_norm', 'fs_dist_to_opt', 'xs_dist_to_opt', 'grads_norm'],
+        metrics= ['fs'],
         data_path='/Users/aleksandrtrisin/Documents/6 семестр/метопты/Benchmark_Opt/src/lib/GD_quadratic.json'
     )
     plotter.plot()

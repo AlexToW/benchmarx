@@ -343,7 +343,7 @@ def test_local():
     plotter = Plotter(
         #metrics= ['fs', 'xs_norm', 'fs_dist_to_opt', 'xs_dist_to_opt', 'grads_norm'],
         metrics= ['fs', 'xs_norm', 'fs_dist_to_opt'],
-        data_path='/Users/aleksandrtrisin/Documents/6 семестр/метопты/Benchmark_Opt/src/lib/GD_quadratic.json'
+        data_path='GD_quadratic.json'
     )
     plotter.plot()
 

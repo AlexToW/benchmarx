@@ -49,8 +49,8 @@ class MyGradientDescent(custom_optimizer.CustomOptimizer):
     
 
 def test_local():
-    n = 3
-    x_init = jnp.array([2.0, 1.0, 0.0])
+    n = 2
+    x_init = jnp.array([2.0, 1.0])
     problem = QuadraticProblem(n=n)
     benchmark = Benchmark(
         runs=2,
@@ -63,7 +63,7 @@ def test_local():
                 'GRADIENT_DESCENT_const_step': {
                     'x_init' : x_init,
                     'tol': 1e-3,
-                    'maxiter': 2,
+                    'maxiter': 500,
                     'stepsize' : 1e-2
                 }
             }
@@ -80,7 +80,7 @@ def test_local():
         stepsize=1e-2,
         problem=problem,
         tol=1e-3,
-        maxiter=2,
+        maxiter=500,
         label='MyGradDescent'
     )
     result = benchmark.run(user_method=my_solver)

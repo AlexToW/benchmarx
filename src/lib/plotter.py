@@ -8,6 +8,7 @@ from plotly.subplots import make_subplots
 
 import pandas as pd
 #=======================
+import matplotlib.pyplot as plt
 
 
 import json
@@ -300,14 +301,22 @@ class Plotter:
 
 
 
-    def _plot(self, data_to_plot: dict):
+    def _plot(self, data_to_plot: dict, title: str = ''):
         """
         
         data_to_plot:
         {'problem': {'method1' : {'mean': mean_val(list), 'std': std_val(list)},
                      'method2' : {'mean': mean_val(list), 'std': std_val(list)}}
         """
-        pass
+        #print(data_to_plot)
+        for problem, problem_dict in data_to_plot.items():
+            for method, method_data in problem_dict.items():
+                x = range(len(method_data['mean']))
+                y = method_data['mean']
+                plt.plot(x, y, label=method)
+                plt.legend()
+            plt.title(f'{problem}, {title}')
+            plt.show()
 
 
     def plot(self, save: bool = True):
@@ -319,22 +328,21 @@ class Plotter:
         data = self._sparse_data()
         for metric in self.metrics:
             if metric == 'fs':
-                print('fs', self._get_fs(data))
-                print('mean_std_fs', self._mean_std(self._get_fs(data)))
+                self._plot(self._mean_std(self._get_fs(data)), title='func vals')
             if metric == 'xs_norm':
-                print('xs_norm', self._get_xs_norms(data))
+                self._plot(self._mean_std(self._get_xs_norms(data)), title='||x||')
             if metric == 'fs_dist_to_opt':
-                print('dists_f', self._get_fs_dist_to_opt(data))
+                self._plot(self._mean_std(self._get_fs_dist_to_opt(data)), title='|f-f*|')
             if metric == 'xs_dist_to_opt':
-                print('dicts_x', self._get_xs_dist_to_opt(data))
+                self._plot(self._mean_std(self._get_xs_dist_to_opt(data)), title='||x-x*||')
             if metric == 'grads_norm':
-                print('gards', self._get_grads_norm(data))
+                self._plot(self._mean_std(self._get_grads_norm(data)), title='||grad f||')
 
 
 def test_local():
     plotter = Plotter(
         #metrics= ['fs', 'xs_norm', 'fs_dist_to_opt', 'xs_dist_to_opt', 'grads_norm'],
-        metrics= ['fs'],
+        metrics= ['fs', 'xs_norm', 'fs_dist_to_opt'],
         data_path='/Users/aleksandrtrisin/Documents/6 семестр/метопты/Benchmark_Opt/src/lib/GD_quadratic.json'
     )
     plotter.plot()

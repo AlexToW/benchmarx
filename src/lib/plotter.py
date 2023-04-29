@@ -166,7 +166,7 @@ class Plotter:
                         else:
                             print('Maaaan(')
                             exit(1)
-                    method_trg[method] = f_vals_vals
+                    method_trg[method_dict['hyperparams']['label']] = f_vals_vals
                 result[problem] = method_trg
         return result
 
@@ -191,8 +191,6 @@ class Plotter:
                 pass
             if metric == 'grads_norm':
                 pass
-
-
 
 
 def test_local():

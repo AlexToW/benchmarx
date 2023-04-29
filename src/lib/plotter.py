@@ -111,6 +111,7 @@ class Plotter:
             x_opt = None
             A = None
             b = None
+            f_opt = None
             if 'A' in raw_data[problem]:
                 A = self._matrix_from_str(raw_data[problem]['A'])
                 raw_data[problem].pop('A')
@@ -120,6 +121,9 @@ class Plotter:
             if 'x_opt' in raw_data[problem]:
                 x_opt = self._convert(raw_data[problem]['x_opt'])
                 raw_data[problem].pop('x_opt')
+            if 'f_opt' in raw_data[problem]:
+                f_opt = self._convert(raw_data[problem]['f_opt'])
+                raw_data[problem].pop('f_opt')
 
             problem_dict_good = dict()
             for method, method_dict in problem_dict.items():
@@ -146,13 +150,15 @@ class Plotter:
                 good_data[problem]['A'] = A
             if b is not None:
                 good_data[problem]['b'] = b
+            if f_opt is not None:
+                good_data[problem]['f_opt'] = f_opt
 
         return good_data
 
 
     def _get_fs(self, data: dict) -> dict:
         """
-        Returns dict {method: [list[func vals run_0], ... ,list[func vals run_N]]}
+        Returns dict {method_label: [list[func vals run_0], ... ,list[func vals run_N]]}
         """
         result = dict()
         for problem, problem_dict in data.items():
@@ -171,6 +177,96 @@ class Plotter:
         return result
 
 
+    def _get_xs_norms(self, data: dict) -> dict:
+        """
+        Returns dict {method_label: [list[xs norms run_0], ... ,list[xs norms run_N]]}
+        """
+        result = dict()
+        for problem, problem_dict in data.items():
+            method_trg = dict()
+            for method, method_dict in problem_dict.items():
+                x_vals_runs = list()
+                if isinstance(method_dict, dict):
+                    for run_num, run_dict in method_dict['runs'].items():
+                        if 'history_x' in run_dict:
+                            x_vals_runs.append([float(jnp.linalg.norm(x)) for x in run_dict['history_x']])
+                        else:
+                            print('Maaaan(')
+                            exit(1)
+                    method_trg[method_dict['hyperparams']['label']] = x_vals_runs
+                result[problem] = method_trg
+        return result
+
+
+    def _get_fs_dist_to_opt(self, data: dict) -> dict:
+        """
+        Returns dict {method_label: [[rho_s run_0], ..., [rho_s run_N]]}
+        """
+        result = dict()
+        for problem, problem_dict in data.items():
+            if not 'f_opt' in data[problem]:
+                print('where is f_opt?')
+                exit(1)
+            f_opt = data[problem]['f_opt']
+            method_trg = dict()
+            for method, method_dict in problem_dict.items():
+                dists_vals_runs = list()
+                if isinstance(method_dict, dict):
+                    for run_num, run_dict in method_dict['runs'].items():
+                        if 'history_f' in run_dict:
+                            dists_vals_runs.append([float(jnp.abs(f_val - f_opt)) for f_val in run_dict['history_f']])
+                        else:
+                            print('Maaaan(')
+                            exit(1)
+                    method_trg[method_dict['hyperparams']['label']] = dists_vals_runs
+                result[problem] = method_trg
+        return result
+
+
+    def _get_xs_dist_to_opt(self, data: dict) -> dict:
+        """
+        Returns dict {method_label: [[rho_s run_0], ..., [rho_s run_N]]}
+        """
+        result = dict()
+        for problem, problem_dict in data.items():
+            if not 'x_opt' in data[problem]:
+                print('where is x_opt?')
+                exit(1)
+            x_opt = data[problem]['x_opt']
+            method_trg = dict()
+            for method, method_dict in problem_dict.items():
+                dists_vals_runs = list()
+                if isinstance(method_dict, dict):
+                    for run_num, run_dict in method_dict['runs'].items():
+                        if 'history_x' in run_dict:
+                            dists_vals_runs.append([float(jnp.linalg.norm(x - x_opt)) for x in run_dict['history_x']])
+                        else:
+                            print('Maaaan(')
+                            exit(1)
+                    method_trg[method_dict['hyperparams']['label']] = dists_vals_runs
+                result[problem] = method_trg
+        return result
+    
+    def _get_grads_norm(self, data: dict) -> dict:
+        """
+        Returns dict 
+        {method_label: [list[grads norms run_0], ... ,list[grads norms run_N]]}
+        """
+        result = dict()
+        for problem, problem_dict in data.items():
+            method_trg = dict()
+            for method, method_dict in problem_dict.items():
+                grad_vals_runs = list()
+                if isinstance(method_dict, dict):
+                    for run_num, run_dict in method_dict['runs'].items():
+                        if 'history_df' in run_dict:
+                            grad_vals_runs.append([float(jnp.linalg.norm(x)) for x in run_dict['history_df']])
+                        else:
+                            print('Maaaan(')
+                            exit(1)
+                    method_trg[method_dict['hyperparams']['label']] = grad_vals_runs
+                result[problem] = method_trg
+        return result
 
 
     def plot(self, save: bool = True):
@@ -182,24 +278,23 @@ class Plotter:
         data = self._sparse_data()
         for metric in self.metrics:
             if metric == 'fs':
-                print(self._get_fs(data))
+                print('fs', self._get_fs(data))
             if metric == 'xs_norm':
-                pass
+                print('xs_norm', self._get_xs_norms(data))
             if metric == 'fs_dist_to_opt':
-                pass
+                print('dists_f', self._get_fs_dist_to_opt(data))
             if metric == 'xs_dist_to_opt':
-                pass
+                print('dicts_x', self._get_xs_dist_to_opt(data))
             if metric == 'grads_norm':
-                pass
+                print('gards', self._get_grads_norm(data))
 
 
 def test_local():
     plotter = Plotter(
-        metrics= ['fs'],
+        metrics= ['fs', 'xs_norm', 'fs_dist_to_opt', 'xs_dist_to_opt', 'grads_norm'],
         data_path='/Users/aleksandrtrisin/Documents/6 семестр/метопты/Benchmark_Opt/src/lib/GD_quadratic.json'
     )
     plotter.plot()
-    #print(plotter._sparse_data())
 
 
 if __name__ == '__main__':

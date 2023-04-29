@@ -65,6 +65,8 @@ class BenchmarkResult:
 
             if self.problem.x_opt is not None:
                 data_str[str(problem)]['x_opt'] = str(self.problem.x_opt)
+            if self.problem.f_opt is not None:
+                data_str[str(problem)]['f_opt'] = str(self.problem.f_opt)
             
             if isinstance(problem, problems.quadratic_problem.QuadraticProblem):
                 data_str[str(problem)]['A'] = str(self.problem.A)

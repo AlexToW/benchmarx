@@ -36,6 +36,7 @@ class QuadraticProblem(Problem):
         super().__init__(info=info, func=self.f)
         if jnp.linalg.det(self.A + self.A.T) != 0:
             self.x_opt = -2 * jnp.linalg.inv(self.A + self.A.T) @ self.b
+            self.f_opt = self.f(self.x_opt)
 
     def f(self, x, *args, **kwargs):
         """

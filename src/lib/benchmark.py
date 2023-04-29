@@ -100,6 +100,11 @@ class Benchmark:
                     result["history_f"] = [self.problem.f(sol)]
                 else:
                     result["history_f"].append(self.problem.f(sol))
+            if "history_df" in metrics:
+                if not "history_df" in result:
+                    result["history_df"] = [jax.grad(self.problem.f)(sol)]
+                else:
+                    result["history_df"].append(jax.grad(self.problem.f)(sol))
             if "nit" in metrics:
                 if not "nit" in result:
                     result["nit"] = [1]

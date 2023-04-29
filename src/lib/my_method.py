@@ -72,6 +72,7 @@ def test_local():
             "nit",
             "history_x",
             "history_f",
+            "history_df"
         ],
     )
     my_solver = MyGradientDescent(

@@ -6,14 +6,16 @@ class Problem:
     The base class of the optimization problem.
     """
 
-    info: str  # Brief information about the problem, such as a common name
-    f: Callable  # Target function
-    x_opt: any  # Problem's optimizer (optional)
-
+    info: str           # Brief information about the problem, such as a common name
+    f: Callable         # Target function
+    x_opt: any          # Problem's optimizer (optional)
+    f_opt: any = None   # target_func(x_opt)
     def __init__(self, info: str, func: Callable, x_opt=None) -> None:
         self.info = info
         self.f = func
         self.x_opt = x_opt
+        if self.x_opt is not None:
+            self.f_opt = self.f(self.x_opt)
 
     def f(self, x):
         """

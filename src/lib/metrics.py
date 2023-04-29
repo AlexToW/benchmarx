@@ -1,6 +1,7 @@
 available_metrics = [
     "history_x",
     "history_f",
+    "history_df",
     "nit",
     "nfev",
     "njev",

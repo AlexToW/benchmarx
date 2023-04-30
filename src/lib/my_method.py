@@ -63,8 +63,9 @@ def test_local():
                 'GRADIENT_DESCENT_const_step': {
                     'x_init' : x_init,
                     'tol': 1e-3,
-                    'maxiter': 500,
-                    'stepsize' : 1e-2
+                    'maxiter': 5,
+                    'stepsize' : 1e-2,
+                    'label': 'label babel'
                 }
             }
         ],
@@ -80,7 +81,7 @@ def test_local():
         stepsize=1e-2,
         problem=problem,
         tol=1e-3,
-        maxiter=500,
+        maxiter=5,
         label='MyGradDescent'
     )
     result = benchmark.run(user_method=my_solver)

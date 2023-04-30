@@ -14,15 +14,9 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname("src"), '..')))
 from jaxopt._src.proximal_gradient import ProximalGradient, ProxGradState
 from jaxopt._src import base
-A = jnp.array([[1, 2], [3, 4]])
 
 
-def f(x):
-    return x.T @ (A @ A.T) @ x
-
-
-
-class BacktrackingProximalGradient(jaxopt.ProximalGradient):
+class ProximalGradientCLS(jaxopt.ProximalGradient):
    linesearch_custom: jaxopt.BacktrackingLineSearch = None
 
    def _iter(self, iter_num, x, x_fun_val, x_fun_grad, stepsize, hyperparams_prox, args, kwargs):
@@ -35,8 +29,7 @@ class BacktrackingProximalGradient(jaxopt.ProximalGradient):
     return super()._iter(iter_num, x, x_fun_val, x_fun_grad, stepsize, hyperparams_prox, args, kwargs)
 
 
-class BacktrackingGradientDescent(BacktrackingProximalGradient):
-  #linesearch_777: jaxopt.BacktrackingLineSearch = None
+class GradientDescentCLS(ProximalGradientCLS):
 
   def init_state(self, init_params: Any, *args, **kwargs) -> ProxGradState:
     return super().init_state(init_params, None, *args, **kwargs)
@@ -51,37 +44,3 @@ class BacktrackingGradientDescent(BacktrackingProximalGradient):
   def __post_init__(self):
     super().__post_init__()
     self.reference_signature = self.fun
-
-    
-   
-
-
-def run_all(solver, w_init, *args, **kwargs):
-  state = solver.init_state(w_init, *args, **kwargs)
-  sol = w_init
-  sols, errors = [], []
-
-  def update(sol, state):
-    return solver.update(sol, state, *args, **kwargs)
-
-  for _ in range(solver.maxiter):
-    sol, state = update(sol, state)
-    sols.append(sol)
-    errors.append(state.error)
-
-  return jnp.stack(sols, axis=0), errors
-
-
-def _main():
-    x_init = jnp.array([1., 1.])
-    #gd = jaxopt.GradientDescent(fun=f, maxiter=5, acceleration=False)
-    #print(run_all(gd, x_init)[0])
-    ls = jaxopt.BacktrackingLineSearch(fun=f, maxiter=20, condition="strong-wolfe",
-                            decrease_factor=0.8)
-    gd = BacktrackingGradientDescent(fun=f, maxiter=5, acceleration=False)
-    gd.linesearch_777 = ls
-    print(run_all(gd, x_init)[0])
-
-
-if __name__ == '__main__':
-    _main()

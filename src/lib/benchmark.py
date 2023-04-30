@@ -10,7 +10,10 @@ import methods as _methods
 # from benchmark_target import BenchmarkTarget
 import metrics as _metrics
 from benchmark_result import BenchmarkResult
+from problems.quadratic_problem import QuadraticProblem
 import custom_optimizer
+
+from ProxGD_custom_linesearch import GradientDescentCLS
 
 
 class Benchmark:
@@ -26,7 +29,7 @@ class Benchmark:
     # If you want to call a method from the jaxopt, 
     # the name of the method must begin with one of these keywords.
     metrics: list[str] = None  # List of fields to include in BenchamrkResult
-
+    aval_linesearch_str = ['armijo', 'goldstein', 'strong-wolfe', 'wolfe']
     def __init__(
         self,
         problem: Problem,
@@ -48,6 +51,12 @@ class Benchmark:
             exit(1)
         self.metrics = metrics
 
+    def _check_linesearch(self, ls_str):
+        #TODO: 'steepest' for QuadraticProblem!
+        #if isinstance(self.problem, QuadraticProblem):
+        #    return ls_str == 'steepest' or ls_str in self.aval_linesearch_str
+        return ls_str in self.aval_linesearch_str
+
     def __run_solver(
         self, solver, x_init, metrics: list[str], *args, **kwargs
     ) -> dict[str, list[any]]:
@@ -57,6 +66,7 @@ class Benchmark:
         or or an heir to the CustomOptimizer class)
         """
         custom_method = issubclass(type(solver), custom_optimizer.CustomOptimizer)
+        #cls = hasattr(solver, 'linesearch_custom')
         result = dict()
         start_time = time.time()
         state = solver.init_state(x_init, *args, **kwargs)
@@ -143,6 +153,28 @@ class Benchmark:
         for item in self.methods:
             for method, params in item.items():
                 # data: dict[Problem, dict[method(str), dict[str, list[any]]]]
+                
+                #======= custom line search =======
+                # A class jaxopt.BacktrackingLineSearch object or str is expected.
+                cls = 'linesearch' in params
+                linesearch = None
+                if cls:
+                    tmp_ls = params['linesearch']
+                    if isinstance(tmp_ls, str):
+                        if not self._check_linesearch(tmp_ls):
+                            print(f'Bad \'linesearch\' argument: must be BacktrackingLineSearch obj or str {self.aval_linesearch_str}, or \'steepest\' for QuadraticProblem')
+                            exit(1)
+                        linesearch = jaxopt.BacktrackingLineSearch(fun=self.problem.f, maxiter=20, condition=tmp_ls,
+                                decrease_factor=0.8)
+                    elif isinstance(tmp_ls, jaxopt.BacktrackingLineSearch):
+                        linesearch = tmp_ls
+                    else:
+                        print(f'Bad \'linesearch\' argument: must be BacktrackingLineSearch obj or str {self.aval_linesearch_str}, or \'steepest\' for QuadraticProblem')
+                        exit(1)
+                    params.pop('linesearch')
+
+                # Now linesearch is jaxopt.BacktrackingLineSearch object!!!
+                
                 if method.startswith('GRADIENT_DESCENT'):
                     res.methods.append(method)
                     x_init = None
@@ -159,7 +191,11 @@ class Benchmark:
                         params.pop('seed')
                     runs_dict = dict()
                     for run in range(self.runs):
-                        solver = jaxopt.GradientDescent(fun=self.problem.f, **params)
+                        if cls:
+                            solver = GradientDescentCLS(fun=self.problem.f, **params)
+                            solver.linesearch_custom = linesearch
+                        else:
+                            solver = jaxopt.GradientDescent(fun=self.problem.f, **params)
                         sub = self.__run_solver(solver=solver, x_init=x_init, metrics=self.metrics, **params)    
                         runs_dict[f'run_{run}'] = sub
                     params['x_init'] = x_init

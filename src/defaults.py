@@ -1,2 +1,2 @@
-default_seed = 1438
+default_seed = 10
 default_dimensionality = 10

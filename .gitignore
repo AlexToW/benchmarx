@@ -7,3 +7,4 @@ test.py
 .vscode
 *wandb*
 /src/lib/wandb
+*.pdf

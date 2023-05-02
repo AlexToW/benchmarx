@@ -1,5 +1,6 @@
 import json
 import wandb
+import logging
 
 import jax
 import jax.numpy as jnp

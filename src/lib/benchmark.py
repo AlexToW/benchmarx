@@ -3,6 +3,7 @@ import jax
 import jax.numpy as jnp
 
 import time
+import logging
 
 from problem import Problem
 import methods as _methods
@@ -162,20 +163,23 @@ class Benchmark:
                     tmp_ls = params['linesearch']
                     if isinstance(tmp_ls, str):
                         if not self._check_linesearch(tmp_ls):
-                            print(f'Bad \'linesearch\' argument: must be BacktrackingLineSearch obj or str {self.aval_linesearch_str}, or \'steepest\' for QuadraticProblem')
+                            error_str = f'Bad \'linesearch\' argument: must be BacktrackingLineSearch obj or str {self.aval_linesearch_str}, or \'steepest\' for QuadraticProblem'
+                            logging.critical(error_str)
                             exit(1)
                         linesearch = jaxopt.BacktrackingLineSearch(fun=self.problem.f, maxiter=20, condition=tmp_ls,
                                 decrease_factor=0.8)
                     elif isinstance(tmp_ls, jaxopt.BacktrackingLineSearch):
                         linesearch = tmp_ls
                     else:
-                        print(f'Bad \'linesearch\' argument: must be BacktrackingLineSearch obj or str {self.aval_linesearch_str}, or \'steepest\' for QuadraticProblem')
+                        error_str = f'Bad \'linesearch\' argument: must be BacktrackingLineSearch obj or str {self.aval_linesearch_str}, or \'steepest\' for QuadraticProblem'
+                        logging.critical(error_str)
                         exit(1)
                     params.pop('linesearch')
 
                 # Now linesearch is jaxopt.BacktrackingLineSearch object!!!
                 
                 if method.startswith('GRADIENT_DESCENT'):
+                    logging.info('Default gradient descent')
                     res.methods.append(method)
                     x_init = None
                     label = 'jaxopt.GradientDescent'
@@ -204,6 +208,7 @@ class Benchmark:
                     data[self.problem][method] = {'hyperparams': params, 'runs': runs_dict}
 
                 elif user_method is not None:
+                    logging.info('Custom method')
                     res.methods.append(method)
                     x_init = None
                     if 'x_init' in params:

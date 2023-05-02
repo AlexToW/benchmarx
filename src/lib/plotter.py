@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 
 import json
 import re
+import logging
 import jax.numpy as jnp
 
 from problems.quadratic_problem import QuadraticProblem
@@ -96,7 +97,7 @@ class Plotter:
                 return val
         else:
             # something went wrong
-            print(f'Can\'t convert {val}')
+            logging.critical(f'Can\'t convert {val}')
             return 'wtf'
 
     def _sparse_data(self) -> dict:
@@ -171,7 +172,8 @@ class Plotter:
                         if 'history_f' in run_dict:
                             f_vals_vals.append(run_dict['history_f'])
                         else:
-                            print('Maaaan(')
+                            logging.critical(f'''There is no history of function values\\\
+                                  in the file {self.data_path}. It is impossible to plot by metric \'fs\'.''')
                             exit(1)
                     method_trg[method_dict['hyperparams']['label']] = f_vals_vals
                 result[problem] = method_trg
@@ -191,7 +193,8 @@ class Plotter:
                         if 'history_x' in run_dict:
                             x_vals_runs.append([float(jnp.linalg.norm(x)) for x in run_dict['history_x']])
                         else:
-                            print('Maaaan(')
+                            logging.critical(f'''There is no history of x values\\\
+                                  in the file {self.data_path}. It is impossible to plot by metric \'xs_norm\'.''')
                             exit(1)
                     method_trg[method_dict['hyperparams']['label']] = x_vals_runs
                 result[problem] = method_trg
@@ -204,7 +207,7 @@ class Plotter:
         result = dict()
         for problem, problem_dict in data.items():
             if not 'f_opt' in data[problem]:
-                print('where is f_opt?')
+                logging.critical(f'There is no \'f_opt\' in {self.data_path}. It is impossible to plot by metric \'fs_dist_to_opt\'.')
                 exit(1)
             f_opt = data[problem]['f_opt']
             method_trg = dict()
@@ -215,7 +218,8 @@ class Plotter:
                         if 'history_f' in run_dict:
                             dists_vals_runs.append([float(jnp.abs(f_val - f_opt)) for f_val in run_dict['history_f']])
                         else:
-                            print('Maaaan(')
+                            logging.critical(f'''There is no history of function values\\\
+                                  in the file {self.data_path}. It is impossible to plot by metric \'fs_dist_to_opt\'.''')
                             exit(1)
                     method_trg[method_dict['hyperparams']['label']] = dists_vals_runs
                 result[problem] = method_trg
@@ -228,7 +232,7 @@ class Plotter:
         result = dict()
         for problem, problem_dict in data.items():
             if not 'x_opt' in data[problem]:
-                print('where is x_opt?')
+                logging.critical(f'There is no \'x_opt\' in {self.data_path}. It is impossible to plot by metric \'xs_dist_to_opt\'.')
                 exit(1)
             x_opt = data[problem]['x_opt']
             method_trg = dict()
@@ -239,7 +243,8 @@ class Plotter:
                         if 'history_x' in run_dict:
                             dists_vals_runs.append([float(jnp.linalg.norm(x - x_opt)) for x in run_dict['history_x']])
                         else:
-                            print('Maaaan(')
+                            logging.critical(f'''There is no history of x values\\\
+                                  in the file {self.data_path}. It is impossible to plot by metric \'xs_dist_to_opt\'.''')
                             exit(1)
                     method_trg[method_dict['hyperparams']['label']] = dists_vals_runs
                 result[problem] = method_trg
@@ -260,7 +265,8 @@ class Plotter:
                         if 'history_df' in run_dict:
                             grad_vals_runs.append([float(jnp.linalg.norm(x)) for x in run_dict['history_df']])
                         else:
-                            print('Maaaan(')
+                            logging.critical(f'''There is no history of gradient values\\\
+                                  in the file {self.data_path}. It is impossible to plot by metric \'grads_norm\'.''')
                             exit(1)
                     method_trg[method_dict['hyperparams']['label']] = grad_vals_runs
                 result[problem] = method_trg

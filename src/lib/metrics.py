@@ -1,3 +1,5 @@
+import logging
+
 available_metrics = [
     "history_x",
     "history_f",
@@ -27,7 +29,7 @@ def check_plot_metric(metric: str):
 def check_plot_metric(metric: list[str]):
     for item in metric:
         if item not in available_metrics_to_plot:
-            print(f'Unsupported metric \'{item}\' to plot. Available metrics to plot: {available_metrics_to_plot}')
+            logging.critical(f'Unsupported metric \'{item}\' to plot. Available metrics to plot: {available_metrics_to_plot}')
             return False
     return True
 
@@ -39,6 +41,6 @@ def check_metric(metric: str):
 def check_metric(metric: list[str]):
     for item in metric:
         if item not in available_metrics:
-            print(f'Unsupported metric \'{item}\'. Available metrics: {available_metrics}')
+            logging.critical(f'Unsupported metric \'{item}\'. Available metrics: {available_metrics}')
             return False
     return True

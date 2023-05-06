@@ -48,16 +48,16 @@ class QuadraticProblem(Problem):
     def __get_random_matrix(self, n: int = 2):
         """
         Returns a positive defined matrix of size (n, n)
-        Powered by eigendecomposition
         """
-        key = jax.random.PRNGKey(default_seed)
-        return jax.random.uniform(key, (n, n))
+        key = jax.random.PRNGKey(self.seed)
+        A = jax.random.uniform(key, (n, n))
+        return A @ A.T
 
     def __get_random_vector(self, n: int = 2):
         """
         Returns a random vector: np.array of shape (n,)
         """
-        key = jax.random.PRNGKey(default_seed)
+        key = jax.random.PRNGKey(self.seed)
         return jax.random.uniform(key, (n,))
 
 

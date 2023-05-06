@@ -1,6 +1,7 @@
 from typing import Callable
 import jax
 import jax.numpy as jnp
+import logging
 
 from problem import Problem
 
@@ -18,7 +19,8 @@ class Rastrigin(Problem):
 
     def f(self, x):
         if x.shape[0] != self.n:
-            print(f'Wrong x shape: {x.shape}. Expected: ({self.n},)')
+            err_msg = f'Wrong x shape: {x.shape}. Expected: ({self.n},)'
+            logging.critical(err_msg)
             exit(1)
         A = 10
         return A * self.n + sum([xi**2 - A * jnp.cos(2 * jnp.pi * xi) for xi in x])

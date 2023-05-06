@@ -1,6 +1,7 @@
 from typing import Callable
 import jax
 import jax.numpy as jnp
+import logging
 
 from problem import Problem
 
@@ -18,6 +19,7 @@ class Rosenbrock(Problem):
 
     def f(self, x):
         if x.shape[0] != self.n:
-            print(f'Wrong x shape: {x.shape}. Expected: ({self.n},)')
+            err_msg = f'Wrong x shape: {x.shape}. Expected: ({self.n},)'
+            logging.critical(err_msg)
             exit(1)
         return sum([100 * (x[i+1] - x[i]**2)**2 + (1 - x[i])**2 for i in range(self.n - 1)])

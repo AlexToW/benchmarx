@@ -352,7 +352,7 @@
       "hyperparams": {
         "tol": "0.001",
         "maxiter": "350",
-        "stepsize": "<function run_experiment.<locals>.<lambda> at 0x16cd4e520>",
+        "stepsize": "<function run_experiment.<locals>.<lambda> at 0x16d84a520>",
         "x_init": "[0.46885228 0.4901142 ]",
         "label": "GD_1/(k+9)",
         "seed": "10"

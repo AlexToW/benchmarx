@@ -8,6 +8,9 @@ import sys
 from benchmark import Benchmark
 from plotter import Plotter
 from problems.quadratic_problem import QuadraticProblem
+from custom_optimizer import CustomOptimizer
+
+
 
 
 def run_experiment():

@@ -3,10 +3,7 @@ import logging
 
 available_built_in_methods = [
     'GRADIENT_DESCENT',
-    'STEEPEST_DESCENT',
-    'NEWTON',
-    'DAMPED_NEWTON',
-    'CONJUGATE_GRADIENTS'
+    'BFGS'
 ]
 
 def check_method(methods: list[str]):

@@ -159,6 +159,7 @@ class Benchmark:
                 # A class jaxopt.BacktrackingLineSearch object or str is expected.
                 cls = 'linesearch' in params
                 linesearch = None
+                ls_str = ''
                 if cls:
                     tmp_ls = params['linesearch']
                     if isinstance(tmp_ls, str):
@@ -166,6 +167,7 @@ class Benchmark:
                             error_str = f'Bad \'linesearch\' argument: must be BacktrackingLineSearch obj or str {self.aval_linesearch_str}, or \'steepest\' for QuadraticProblem'
                             logging.critical(error_str)
                             exit(1)
+                        ls_str = tmp_ls
                         linesearch = jaxopt.BacktrackingLineSearch(fun=self.problem.f, maxiter=20, condition=tmp_ls,
                                 decrease_factor=0.8)
                     elif isinstance(tmp_ls, jaxopt.BacktrackingLineSearch):
@@ -206,6 +208,36 @@ class Benchmark:
                     params['label'] = label
                     params['seed'] = seed
                     data[self.problem][method] = {'hyperparams': params, 'runs': runs_dict}
+
+                elif method.startswith('BFGS'):
+                    logging.info('BFGS (jaxopt built-in)')
+                    res.methods.append(method)
+                    x_init = None
+                    label = 'jaxopt.BFGS'
+                    seed = str(self.problem.seed)
+                    if 'x_init' in params:
+                        x_init = params['x_init']
+                        params.pop('x_init')
+                    if 'label' in params:
+                        label = params['label']
+                        params.pop('label')
+                    if 'seed' in params:
+                        seed = params['seed']
+                        params.pop('seed')
+                    runs_dict = dict()
+                    for run in range(self.runs):
+                        if cls:
+                            solver = jaxopt.BFGS(fun=self.problem.f, condition=ls_str, **params)
+                        else:
+                            solver = jaxopt.BFGS(fun=self.problem.f, **params)
+                        sub = self.__run_solver(solver=solver, x_init=x_init, metrics=self.metrics, **params)    
+                        runs_dict[f'run_{run}'] = sub
+                    params['x_init'] = x_init
+                    params['label'] = label
+                    params['seed'] = seed
+                    data[self.problem][method] = {'hyperparams': params, 'runs': runs_dict}
+
+
 
                 elif user_method is not None:
                     logging.info('Custom method')
@@ -252,6 +284,22 @@ def test_local():
                     'tol': 1e-2,
                     'maxiter': 11,
                     'stepsize' : lambda iter_num: 1 / (iter_num + 20)
+                }
+            },
+            {
+                'BFGS_strong_wolfe': {
+                    'x_init' : x_init,
+                    'tol': 1e-2,
+                    'maxiter': 11,
+                    'linesearch': 'strong-wolfe'
+                }
+            },
+            {
+                'BFGS_armijo': {
+                    'x_init' : x_init,
+                    'tol': 1e-2,
+                    'maxiter': 11,
+                    'linesearch': 'armijo'
                 }
             }
         ],

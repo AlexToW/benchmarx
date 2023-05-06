@@ -16,8 +16,8 @@ available_metrics = [
 available_metrics_to_plot = [
     'fs',
     'xs_norm',
-    'fs_dist_to_opt',
-    'xs_dist_to_opt',
+    'fs_dist_to_opt',       # TODO: rename to f_gap
+    'xs_dist_to_opt',       # TODO: rename to x_gap
     'grads_norm'
 ]
 

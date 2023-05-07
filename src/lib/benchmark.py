@@ -189,7 +189,7 @@ class Benchmark:
                                 condition = params['condition']
                                 params.pop('condition')
                             if isinstance(ls, str):
-                                if ls == 'backtraking':
+                                if ls == 'backtracking':
                                     if condition in ['wolfe', 'strong-wolfe', 'armijo', 'goldstein']:
                                         ls_obj = jaxopt.BacktrackingLineSearch(fun=self.problem.f, maxiter=20, condition=condition, decrease_factor=0.8)
                                     else:
@@ -367,6 +367,15 @@ def test_local():
                     'tol': 1e-2,
                     'maxiter': 11,
                     'stepsize' : lambda iter_num: 1 / (iter_num + 20)
+                }
+            },
+            {
+                'GRADIENT_DESCENT_strong_wolfe': {
+                    'x_init' : x_init,
+                    'tol': 1e-2,
+                    'maxiter': 11,
+                    'linesearch' : 'backtracking',
+                    'condition': 'strong-wolfe'
                 }
             },
             {

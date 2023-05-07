@@ -45,7 +45,7 @@
       "hyperparams": {
         "tol": "0.01",
         "maxiter": "11",
-        "stepsize": "<function test_local.<locals>.<lambda> at 0x145bfce00>",
+        "stepsize": "<function test_local.<locals>.<lambda> at 0x12fefce00>",
         "x_init": "[1. 1.]",
         "label": "jaxopt.GradientDescent",
         "seed": "10"
@@ -79,6 +79,40 @@
             "0.15796281"
           ],
           "nit": "11"
+        }
+      }
+    },
+    "GRADIENT_DESCENT_strong_wolfe": {
+      "hyperparams": {
+        "tol": "0.01",
+        "maxiter": "11",
+        "x_init": "[1. 1.]",
+        "label": "jaxopt.GradientDescent",
+        "seed": "10"
+      },
+      "runs": {
+        "run_0": {
+          "history_x": [
+            "[1. 1.]",
+            "[-0.36480677 -0.22694802]",
+            "[-0.26824892 -0.03559831]",
+            "[-0.31288597 -0.03393599]",
+            "[-0.3145923  -0.01682303]",
+            "[-0.31856582 -0.01769585]",
+            "[-0.31668448 -0.017725  ]",
+            "[-0.31587982 -0.01912542]"
+          ],
+          "history_f": [
+            "1.4799222",
+            "-0.020847827",
+            "-0.04225967",
+            "-0.043008085",
+            "-0.043088328",
+            "-0.04308813",
+            "-0.04309073",
+            "-0.043091904"
+          ],
+          "nit": "8"
         }
       }
     },

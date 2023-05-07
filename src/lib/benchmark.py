@@ -52,11 +52,14 @@ class Benchmark:
             exit(1)
         self.metrics = metrics
 
-    def _check_linesearch(self, ls_str):
+    def _check_linesearch(self, ls_str: str, method: str):
         #TODO: 'steepest' for QuadraticProblem!
-        #if isinstance(self.problem, QuadraticProblem):
-        #    return ls_str == 'steepest' or ls_str in self.aval_linesearch_str
-        return ls_str in self.aval_linesearch_str
+        if method.startswith('GRADIENT_DESCENT'):
+            return ls_str in ['armijo', 'goldstein', 'strong-wolfe', 'wolfe']
+        elif method.startswith('BFGS') or method.startswith('LBFGS'):
+            return ls_str in ['armijo', 'goldstein', 'strong-wolfe', 'wolfe'] or ls_str in ['backtracking', 'zoom', 'hager-zhang']
+        
+        return False
 
     def __run_solver(
         self, solver, x_init, metrics: list[str], *args, **kwargs
@@ -157,7 +160,12 @@ class Benchmark:
                 
                 #======= custom line search =======
                 # A class jaxopt.BacktrackingLineSearch object or str is expected.
+                # For Gradient Descent: params['linesearch'] in ['wolfe', 'strong-wolfe', 'armijo', 'goldstein']
+                # For (L)BFGS: params['linesearch'] must be str from 
+                # ['backtracking', 'zoom', 'hager-zhang'] or ['wolfe', 'strong-wolfe', 'armijo', 'goldstein']. 
                 cls = 'linesearch' in params
+                
+                '''
                 linesearch = None
                 ls_str = ''
                 ls_condition = ''
@@ -186,10 +194,8 @@ class Benchmark:
                         error_str = f'Bad \'linesearch\' argument: must be BacktrackingLineSearch obj or str {self.aval_linesearch_str}, or \'steepest\' for QuadraticProblem'
                         logging.critical(error_str)
                         exit(1)
-                    params.pop('linesearch')
-
-                # Now linesearch is jaxopt.BacktrackingLineSearch object!!!
-                
+                    #params.pop('linesearch')
+                    '''                
                 if method.startswith('GRADIENT_DESCENT'):
                     logging.info('Default gradient descent')
                     res.methods.append(method)
@@ -208,8 +214,34 @@ class Benchmark:
                     runs_dict = dict()
                     for run in range(self.runs):
                         if cls:
-                            solver = GradientDescentCLS(fun=self.problem.f, **params)
-                            solver.linesearch_custom = linesearch
+                            ls = params['linesearch']
+                            params.pop('linesearch')
+                            if 'condition' in params:
+                                condition = params['condition']
+                                params.pop('condition')
+                            if isinstance(ls, str):
+                                if ls == 'backtraking':
+                                    if condition in ['wolfe', 'strong-wolfe', 'armijo', 'goldstein']:
+                                        ls_obj = jaxopt.BacktrackingLineSearch(fun=self.problem.f, maxiter=20, condition=condition, decrease_factor=0.8)
+                                    else:
+                                        err_msg = f'Unknown condition {condition}'
+                                        logging.critical(err_msg)
+                                        exit(1)
+                                elif ls == 'hager-zhang':
+                                    ls_obj = jaxopt.HagerZhangLineSearch(fun=self.problem.f)
+                                else:
+                                    err_msg = f'Unknown line search {ls}'
+                                    logging.critical(err_msg)
+                                    exit(1)
+                                solver = GradientDescentCLS(fun=self.problem.f, **params)
+                                solver.linesearch_custom = ls_obj
+                            elif isinstance(ls, jaxopt.BacktrackingLineSearch):
+                                solver = GradientDescentCLS(fun=self.problem.f, **params)
+                                solver.linesearch_custom = ls
+                            else:
+                                err_msg = f'Unknown linesearch {ls}'
+                                logging.critical(err_msg)
+                                exit(1)
                         else:
                             solver = jaxopt.GradientDescent(fun=self.problem.f, **params)
                         sub = self.__run_solver(solver=solver, x_init=x_init, metrics=self.metrics, **params)    
@@ -237,10 +269,30 @@ class Benchmark:
                     runs_dict = dict()
                     for run in range(self.runs):
                         if cls:
-                            if ls_str != '' and ls_condition != '':
-                                solver = jaxopt.BFGS(fun=self.problem.f, linesearch=ls_str, condition=ls_str, **params)
-                            if ls_str == '' and ls_condition != '':
-                                solver = jaxopt.BFGS(fun=self.problem.f, linesearch=ls_str, condition=ls_str, **params)
+                            new_linesearch = 'zoom'
+                            new_condition = 'stron-wolfe'
+                            ls = params['linesearch']
+                            params.pop('linesearch')
+                            cond = ''
+                            if 'condition' in params:
+                                cond = params['condition']
+                                params.pop('condition')
+                            if isinstance(ls, str) and self._check_linesearch(ls, method):
+                                if ls in ['backtracking', 'zoom', 'hager-zhang']:
+                                    new_linesearch = ls
+                                else:
+                                    err_msg = f'Unknown line search \'{ls}\'. zoom line search will be used instead of {ls}.'
+                                    logging.warning(err_msg)
+                                if cond in ['wolfe', 'strong-wolfe', 'armijo', 'goldstein']:
+                                    new_condition = cond
+                                else:
+                                    err_msg = f'Unknown condition \'{cond}\'. strong-wolfe condition will be used instead if {cond}'
+                                    logging.warning(err_msg)
+                            else:
+                                err_msg = f"For BFGS parameter \'linesearch\' must be string from {['wolfe', 'strong-wolfe', 'armijo', 'goldstein']}(condition) or {['backtracking', 'zoom', 'hager-zhang']} (linesearch)"
+                                logging.critical(err_msg)
+                            
+                            solver = jaxopt.BFGS(fun=self.problem.f, linesearch=new_linesearch, condition=new_condition, **params)
                         else:
                             solver = jaxopt.BFGS(fun=self.problem.f, **params)
                         sub = self.__run_solver(solver=solver, x_init=x_init, metrics=self.metrics, **params)    
@@ -268,7 +320,28 @@ class Benchmark:
                     runs_dict = dict()
                     for run in range(self.runs):
                         if cls:
-                            solver = jaxopt.LBFGS(fun=self.problem.f, condition=ls_str, **params)
+                            new_linesearch = 'zoom'
+                            new_condition = 'stron-wolfe'
+                            ls = params['linesearch']
+                            params.pop('linesearch')
+                            cond = ''
+                            if 'condition' in params:
+                                cond = params['condition']
+                                params.pop('condition')
+                            if isinstance(ls, str) and self._check_linesearch(ls, method):
+                                if ls in ['backtracking', 'zoom', 'hager-zhang']:
+                                    new_linesearch = ls
+                                if cond in ['wolfe', 'strong-wolfe', 'armijo', 'goldstein']:
+                                    new_condition = cond
+                                else:
+                                    err_msg = f'Unknown line search \'{ls}\', {cond}'
+                                    logging.critical(err_msg)
+                                    exit(1)
+                            else:
+                                err_msg = f"For LBFGS parameter \'linesearch\' must be string from {['wolfe', 'strong-wolfe', 'armijo', 'goldstein']}(condition) or {['backtracking', 'zoom', 'hager-zhang']} (linesearch)"
+                                logging.critical(err_msg)
+                            
+                            solver = jaxopt.LBFGS(fun=self.problem.f, linesearch=new_linesearch, condition=new_condition, **params)
                         else:
                             solver = jaxopt.LBFGS(fun=self.problem.f, **params)
                         sub = self.__run_solver(solver=solver, x_init=x_init, metrics=self.metrics, **params)    
@@ -332,7 +405,7 @@ def test_local():
                     'x_init' : x_init,
                     'tol': 1e-2,
                     'maxiter': 11,
-                    'linesearch': 'strong-wolfe'
+                    'condition': 'strong-wolfe'
                 }
             },
             {
@@ -340,7 +413,7 @@ def test_local():
                     'x_init' : x_init,
                     'tol': 1e-2,
                     'maxiter': 11,
-                    'linesearch': 'armijo'
+                    'condition': 'armijo'
                 }
             }
         ],
@@ -355,4 +428,5 @@ def test_local():
 
 
 if __name__ == "__main__":
+    logging.getLogger().setLevel(logging.INFO)
     test_local()

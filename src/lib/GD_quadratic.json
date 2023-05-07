@@ -45,7 +45,7 @@
       "hyperparams": {
         "tol": "0.01",
         "maxiter": "11",
-        "stepsize": "<function test_local.<locals>.<lambda> at 0x16a3f8e00>",
+        "stepsize": "<function test_local.<locals>.<lambda> at 0x145bfce00>",
         "x_init": "[1. 1.]",
         "label": "jaxopt.GradientDescent",
         "seed": "10"
@@ -86,6 +86,7 @@
       "hyperparams": {
         "tol": "0.01",
         "maxiter": "11",
+        "condition": "strong-wolfe",
         "x_init": "[1. 1.]",
         "label": "jaxopt.BFGS",
         "seed": "10"
@@ -112,6 +113,7 @@
       "hyperparams": {
         "tol": "0.01",
         "maxiter": "11",
+        "condition": "armijo",
         "x_init": "[1. 1.]",
         "label": "jaxopt.BFGS",
         "seed": "10"

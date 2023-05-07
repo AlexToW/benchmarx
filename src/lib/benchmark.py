@@ -160,9 +160,19 @@ class Benchmark:
                 cls = 'linesearch' in params
                 linesearch = None
                 ls_str = ''
+                ls_condition = ''
                 if cls:
                     tmp_ls = params['linesearch']
                     if isinstance(tmp_ls, str):
+                        if method.startswith('BFGS') or method.startswith('LBFGS'):
+                            if tmp_ls in ['backtracking', 'zoom', 'hager-zhang']:
+                                ls_str = tmp_ls
+                            elif self._check_linesearch(tmp_ls):
+                                ls_condition = tmp_ls
+                            else:
+                                error_str = f'Bad \'linesearch\' argument: must be BacktrackingLineSearch obj or str {self.aval_linesearch_str}, or \'steepest\' for QuadraticProblem, or {["backtracking", "zoom", "hager-zhang"]}'
+                                logging.critical(error_str)
+                                exit(1)
                         if not self._check_linesearch(tmp_ls):
                             error_str = f'Bad \'linesearch\' argument: must be BacktrackingLineSearch obj or str {self.aval_linesearch_str}, or \'steepest\' for QuadraticProblem'
                             logging.critical(error_str)
@@ -227,9 +237,40 @@ class Benchmark:
                     runs_dict = dict()
                     for run in range(self.runs):
                         if cls:
-                            solver = jaxopt.BFGS(fun=self.problem.f, condition=ls_str, **params)
+                            if ls_str != '' and ls_condition != '':
+                                solver = jaxopt.BFGS(fun=self.problem.f, linesearch=ls_str, condition=ls_str, **params)
+                            if ls_str == '' and ls_condition != '':
+                                solver = jaxopt.BFGS(fun=self.problem.f, linesearch=ls_str, condition=ls_str, **params)
                         else:
                             solver = jaxopt.BFGS(fun=self.problem.f, **params)
+                        sub = self.__run_solver(solver=solver, x_init=x_init, metrics=self.metrics, **params)    
+                        runs_dict[f'run_{run}'] = sub
+                    params['x_init'] = x_init
+                    params['label'] = label
+                    params['seed'] = seed
+                    data[self.problem][method] = {'hyperparams': params, 'runs': runs_dict}
+
+                elif method.startswith('LBFGS'):
+                    logging.info('LBFGS (jaxopt built-in)')
+                    res.methods.append(method)
+                    x_init = None
+                    label = 'jaxopt.LBFGS'
+                    seed = str(self.problem.seed)
+                    if 'x_init' in params:
+                        x_init = params['x_init']
+                        params.pop('x_init')
+                    if 'label' in params:
+                        label = params['label']
+                        params.pop('label')
+                    if 'seed' in params:
+                        seed = params['seed']
+                        params.pop('seed')
+                    runs_dict = dict()
+                    for run in range(self.runs):
+                        if cls:
+                            solver = jaxopt.LBFGS(fun=self.problem.f, condition=ls_str, **params)
+                        else:
+                            solver = jaxopt.LBFGS(fun=self.problem.f, **params)
                         sub = self.__run_solver(solver=solver, x_init=x_init, metrics=self.metrics, **params)    
                         runs_dict[f'run_{run}'] = sub
                     params['x_init'] = x_init

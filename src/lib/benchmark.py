@@ -164,38 +164,7 @@ class Benchmark:
                 # For (L)BFGS: params['linesearch'] must be str from 
                 # ['backtracking', 'zoom', 'hager-zhang'] or ['wolfe', 'strong-wolfe', 'armijo', 'goldstein']. 
                 cls = 'linesearch' in params
-                
-                '''
-                linesearch = None
-                ls_str = ''
-                ls_condition = ''
-                if cls:
-                    tmp_ls = params['linesearch']
-                    if isinstance(tmp_ls, str):
-                        if method.startswith('BFGS') or method.startswith('LBFGS'):
-                            if tmp_ls in ['backtracking', 'zoom', 'hager-zhang']:
-                                ls_str = tmp_ls
-                            elif self._check_linesearch(tmp_ls):
-                                ls_condition = tmp_ls
-                            else:
-                                error_str = f'Bad \'linesearch\' argument: must be BacktrackingLineSearch obj or str {self.aval_linesearch_str}, or \'steepest\' for QuadraticProblem, or {["backtracking", "zoom", "hager-zhang"]}'
-                                logging.critical(error_str)
-                                exit(1)
-                        if not self._check_linesearch(tmp_ls):
-                            error_str = f'Bad \'linesearch\' argument: must be BacktrackingLineSearch obj or str {self.aval_linesearch_str}, or \'steepest\' for QuadraticProblem'
-                            logging.critical(error_str)
-                            exit(1)
-                        ls_str = tmp_ls
-                        linesearch = jaxopt.BacktrackingLineSearch(fun=self.problem.f, maxiter=20, condition=tmp_ls,
-                                decrease_factor=0.8)
-                    elif isinstance(tmp_ls, jaxopt.BacktrackingLineSearch):
-                        linesearch = tmp_ls
-                    else:
-                        error_str = f'Bad \'linesearch\' argument: must be BacktrackingLineSearch obj or str {self.aval_linesearch_str}, or \'steepest\' for QuadraticProblem'
-                        logging.critical(error_str)
-                        exit(1)
-                    #params.pop('linesearch')
-                    '''                
+          
                 if method.startswith('GRADIENT_DESCENT'):
                     logging.info('Default gradient descent')
                     res.methods.append(method)

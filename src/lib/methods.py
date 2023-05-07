@@ -3,7 +3,10 @@ import logging
 
 available_built_in_methods = [
     'GRADIENT_DESCENT',
-    'BFGS'
+    'BFGS',
+    'LBFGS',
+    'ArmijoSGD',
+    'PolyakSGD'
 ]
 
 def check_method(methods: list[str]):

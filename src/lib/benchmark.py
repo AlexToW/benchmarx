@@ -320,7 +320,55 @@ class Benchmark:
                     params['seed'] = seed
                     data[self.problem][method] = {'hyperparams': params, 'runs': runs_dict}
 
+                elif method.startswith('ArmijoSGD'):
+                    logging.info('ArmijoSGD (jaxopt built-in)')
+                    res.methods.append(method)
+                    x_init = None
+                    label = 'jaxopt.ArmijoSGD'
+                    seed = str(self.problem.seed)
+                    if 'x_init' in params:
+                        x_init = params['x_init']
+                        params.pop('x_init')
+                    if 'label' in params:
+                        label = params['label']
+                        params.pop('label')
+                    if 'seed' in params:
+                        seed = params['seed']
+                        params.pop('seed')
+                    runs_dict = dict()
+                    solver = jaxopt.ArmijoSGD(fun=self.problem.f, **params)
+                    for run in range(self.runs):
+                        sub = self.__run_solver(solver=solver, x_init=x_init, metrics=self.metrics, **params)    
+                        runs_dict[f'run_{run}'] = sub
+                    params['x_init'] = x_init
+                    params['label'] = label
+                    params['seed'] = seed
+                    data[self.problem][method] = {'hyperparams': params, 'runs': runs_dict}
 
+                elif method.startswith('PolyakSGD'):
+                    logging.info('PolyakSGD (jaxopt built-in)')
+                    res.methods.append(method)
+                    x_init = None
+                    label = 'jaxopt.PolyakSGD'
+                    seed = str(self.problem.seed)
+                    if 'x_init' in params:
+                        x_init = params['x_init']
+                        params.pop('x_init')
+                    if 'label' in params:
+                        label = params['label']
+                        params.pop('label')
+                    if 'seed' in params:
+                        seed = params['seed']
+                        params.pop('seed')
+                    runs_dict = dict()
+                    solver = jaxopt.PolyakSGD(fun=self.problem.f, **params)
+                    for run in range(self.runs):
+                        sub = self.__run_solver(solver=solver, x_init=x_init, metrics=self.metrics, **params)    
+                        runs_dict[f'run_{run}'] = sub
+                    params['x_init'] = x_init
+                    params['label'] = label
+                    params['seed'] = seed
+                    data[self.problem][method] = {'hyperparams': params, 'runs': runs_dict}
 
                 elif user_method is not None:
                     logging.info('Custom method')

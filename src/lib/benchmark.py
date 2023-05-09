@@ -453,6 +453,7 @@ def test_local():
     result.save("GD_quadratic.json")
 
 
+
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.INFO)
     test_local()

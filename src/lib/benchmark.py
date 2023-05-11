@@ -213,7 +213,10 @@ class Benchmark:
                             exit(1)
                     else:
                         solver = jaxopt.GradientDescent(fun=self.problem.f, **params)
+
                     for run in range(self.runs):
+                        if run % 10 == 0:
+                            logging.info(f'#{run} run...')
                         sub = self.__run_solver(solver=solver, x_init=x_init, metrics=self.metrics, **params)    
                         runs_dict[f'run_{run}'] = sub
                     params['x_init'] = x_init
@@ -237,34 +240,38 @@ class Benchmark:
                         seed = params['seed']
                         params.pop('seed')
                     runs_dict = dict()
-                    for run in range(self.runs):
-                        if cls:
-                            new_linesearch = 'zoom'
-                            new_condition = 'stron-wolfe'
-                            ls = params['linesearch']
-                            params.pop('linesearch')
-                            cond = ''
-                            if 'condition' in params:
-                                cond = params['condition']
-                                params.pop('condition')
-                            if isinstance(ls, str) and self._check_linesearch(ls, method):
-                                if ls in ['backtracking', 'zoom', 'hager-zhang']:
-                                    new_linesearch = ls
-                                else:
-                                    err_msg = f'Unknown line search \'{ls}\'. zoom line search will be used instead of {ls}.'
-                                    logging.warning(err_msg)
-                                if cond in ['wolfe', 'strong-wolfe', 'armijo', 'goldstein']:
-                                    new_condition = cond
-                                else:
-                                    err_msg = f'Unknown condition \'{cond}\'. strong-wolfe condition will be used instead if {cond}'
-                                    logging.warning(err_msg)
+                    soler = None
+                    if cls:
+                        new_linesearch = 'zoom'
+                        new_condition = 'stron-wolfe'
+                        ls = params['linesearch']
+                        params.pop('linesearch')
+                        cond = ''
+                        if 'condition' in params:
+                            cond = params['condition']
+                            params.pop('condition')
+                        if isinstance(ls, str) and self._check_linesearch(ls, method):
+                            if ls in ['backtracking', 'zoom', 'hager-zhang']:
+                                new_linesearch = ls
                             else:
-                                err_msg = f"For BFGS parameter \'linesearch\' must be string from {['wolfe', 'strong-wolfe', 'armijo', 'goldstein']}(condition) or {['backtracking', 'zoom', 'hager-zhang']} (linesearch)"
-                                logging.critical(err_msg)
-                            
-                            solver = jaxopt.BFGS(fun=self.problem.f, linesearch=new_linesearch, condition=new_condition, **params)
+                                err_msg = f'Unknown line search \'{ls}\'. zoom line search will be used instead of {ls}.'
+                                logging.warning(err_msg)
+                            if cond in ['wolfe', 'strong-wolfe', 'armijo', 'goldstein']:
+                                new_condition = cond
+                            else:
+                                err_msg = f'Unknown condition \'{cond}\'. strong-wolfe condition will be used instead if {cond}'
+                                logging.warning(err_msg)
                         else:
-                            solver = jaxopt.BFGS(fun=self.problem.f, **params)
+                            err_msg = f"For BFGS parameter \'linesearch\' must be string from {['wolfe', 'strong-wolfe', 'armijo', 'goldstein']}(condition) or {['backtracking', 'zoom', 'hager-zhang']} (linesearch)"
+                            logging.critical(err_msg)
+                        
+                        solver = jaxopt.BFGS(fun=self.problem.f, linesearch=new_linesearch, condition=new_condition, **params)
+                    else:
+                        solver = jaxopt.BFGS(fun=self.problem.f, **params)
+
+                    for run in range(self.runs):
+                        if run % 10 == 0:
+                            logging.info(f'#{run} run...')
                         sub = self.__run_solver(solver=solver, x_init=x_init, metrics=self.metrics, **params)    
                         runs_dict[f'run_{run}'] = sub
                     params['x_init'] = x_init
@@ -339,6 +346,8 @@ class Benchmark:
                     runs_dict = dict()
                     solver = jaxopt.ArmijoSGD(fun=self.problem.f, **params)
                     for run in range(self.runs):
+                        if run % 10 == 0:
+                            logging.info(f'#{run} run...')
                         sub = self.__run_solver(solver=solver, x_init=x_init, metrics=self.metrics, **params)    
                         runs_dict[f'run_{run}'] = sub
                     params['x_init'] = x_init
@@ -364,6 +373,8 @@ class Benchmark:
                     runs_dict = dict()
                     solver = jaxopt.PolyakSGD(fun=self.problem.f, **params)
                     for run in range(self.runs):
+                        if run % 10 == 0:
+                            logging.info(f'#{run} run...')
                         sub = self.__run_solver(solver=solver, x_init=x_init, metrics=self.metrics, **params)    
                         runs_dict[f'run_{run}'] = sub
                     params['x_init'] = x_init
@@ -380,6 +391,8 @@ class Benchmark:
                         params.pop('x_init')
                     runs_dict = dict()
                     for run in range(self.runs):
+                        if run % 10 == 0:
+                            logging.info(f'#{run} run...')
                         sub = self.__run_solver(solver=user_method, metrics=self.metrics, x_init=x_init, **params)
                         runs_dict[f'run_{run}'] = sub
                     params_to_write = user_method.params

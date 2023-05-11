@@ -105,6 +105,11 @@ class Plotter:
         Returns the dictionary from the file (data_path), in which 
         fields are converted from strings to the appropriate type.
         """
+
+        """
+        !!!! fix \n!!!
+        """
+
         raw_data = dict()
         with open(self.data_path) as json_file:
             raw_data = json.load(json_file)
@@ -307,7 +312,7 @@ class Plotter:
 
 
 
-    def _plot(self, data_to_plot: dict, title: str = '', save: bool = True, fname: str = '', show: bool = False, log=False):
+    def _plot(self, data_to_plot: dict, ylabel='ylabel', title: str = '', save: bool = True, fname: str = '', show: bool = False, log=False):
         """
         
         data_to_plot:
@@ -315,27 +320,37 @@ class Plotter:
                      'method2' : {'mean': mean_val(list), 'std': std_val(list)}}
         """
         #print(data_to_plot)
-        markers = ['.', 's', 'p', '*', 'd', 'o', '^', '<', '>', '8', '1']
-        marker_size = 5
-        plt.figure()
+        markers = ['.', 'p', '*', 'd', 'o', '^', '<', '>', '8', '1']
+        colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']
+        marker_size = 2
+        plt.figure(figsize = (3.5,2.5))
         for problem, problem_dict in data_to_plot.items():
-            marker_ind = 0
+            _ind = 0
             for method, method_data in problem_dict.items():
                 x = range(len(method_data['mean']))
                 y = method_data['mean']
-                plt.plot(x, y, label=method, marker=markers[marker_ind], markersize=marker_size)
-                marker_ind += 1
-                marker_ind %= len(markers)
+                std = method_data['std']
+                print(f'max std {fname}', max(std))
+                std_factor = 1e5
+                plt.plot(x, y, label=method, color=colors[_ind], marker=markers[_ind], markersize=marker_size)
+                y_std_down = [max(y[i] - std_factor * std[i], 0) for i in range(min(len(y), len(std)))]
+                y_std_up = [max(y[i] + std_factor* std[i], 0) for i in range(min(len(y), len(std)))]
+                plt.fill_between(x, y_std_down, y_std_up, color=colors[_ind], alpha=0.2)
+                _ind += 1
+                _ind %= len(markers)
+                _ind %= len(colors)
                 if log:
                     plt.yscale('log')
-            plt.title(f'{problem}, {title}')
-            plt.xlabel('iteration')
-            plt.grid()
-            plt.legend()
+            plt.title(f'{problem} {title}')
+            plt.xlabel('Iteration', fontsize=12)
+            plt.ylabel(ylabel)
+            plt.grid(linestyle='--', linewidth=0.4)
+            plt.legend(fontsize=8)
+            plt.tight_layout()
             if show:
                 plt.show()
             if save:
-                plt.savefig(f'{self.dir_path}/{fname}')
+                plt.savefig(f'{self.dir_path}/{fname}.pdf', format='pdf')
 
 
     def plot(self, save: bool = True, show: bool = False, log=False):
@@ -347,15 +362,15 @@ class Plotter:
         data = self._sparse_data()
         for metric in self.metrics:
             if metric == 'fs':
-                self._plot(self._mean_std(self._get_fs(data)), title='func vals', save=save, fname='fs', show=show, log=log)
+                self._plot(self._mean_std(self._get_fs(data)), ylabel='Function value', title='', save=save, fname='fs', show=show, log=log)
             if metric == 'xs_norm':
-                self._plot(self._mean_std(self._get_xs_norms(data)), title='||x||', save=save, fname='xs_norm', show=show, log=log)
+                self._plot(self._mean_std(self._get_xs_norms(data)), ylabel='Norm of x', title='', save=save, fname='xs_norm', show=show, log=log)
             if metric == 'f_gap':
-                self._plot(self._mean_std(self._get_f_gap(data)), title='|f-f*|', save=save, fname='f_gap', show=show, log=log)
+                self._plot(self._mean_std(self._get_f_gap(data)), ylabel='Function gap', title='', save=save, fname='f_gap', show=show, log=log)
             if metric == 'x_gap':
-                self._plot(self._mean_std(self._get_x_gap(data)), title='||x-x*||', save=save, fname='x_gap', show=show, log=log)
+                self._plot(self._mean_std(self._get_x_gap(data)), ylabel='x gap', title='', save=save, fname='x_gap', show=show, log=log)
             if metric == 'grads_norm':
-                self._plot(self._mean_std(self._get_grads_norm(data)), title='||grad f||', save=save, fname='grads_norm', show=show, log=log)
+                self._plot(self._mean_std(self._get_grads_norm(data)), ylabel='Norm of gradient', title='', save=save, fname='grads_norm', show=show, log=log)
 
 
 def test_local():

@@ -1,6 +1,7 @@
 import json
 import wandb
 import logging
+import sys
 
 import jax
 import jax.numpy as jnp
@@ -70,7 +71,9 @@ class BenchmarkResult:
                 data_str[str(problem)]['f_opt'] = str(self.problem.f_opt)
             
             if isinstance(problem, problems.quadratic_problem.QuadraticProblem):
-                data_str[str(problem)]['A'] = str(self.problem.A)
+                #data_str[str(problem)]['A'] = jnp.array2string(self.problem.A, threshold=sys.maxsize) #str(self.problem.A)
+                jnp.set_printoptions(threshold=sys.maxsize)
+                data_str[str(problem)]['A'] = jnp.array_str(self.problem.A)
                 data_str[str(problem)]['b'] = str(self.problem.b)
         with open(path, "w") as file:
             json.dump(data_str, file, indent=2)

@@ -330,6 +330,7 @@ class Plotter:
                     plt.yscale('log')
             plt.title(f'{problem}, {title}')
             plt.xlabel('iteration')
+            plt.grid()
             plt.legend()
             if show:
                 plt.show()

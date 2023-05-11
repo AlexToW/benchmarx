@@ -19,7 +19,7 @@ def run_experiment():
     key = jax.random.PRNGKey(758493)
     x_init = jax.random.uniform(key, shape=(n,))
     problem = QuadraticProblem(n=n)
-    maxiter = 350
+    maxiter = 50
     benchmark = Benchmark(
         runs=2,
         problem=problem,
@@ -82,7 +82,7 @@ def draw():
 
 def _main():
     logging.getLogger().setLevel(logging.INFO)
-    run_experiment()
+    #run_experiment()
     draw()
 
 

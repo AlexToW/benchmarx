@@ -331,7 +331,7 @@ class Plotter:
                 y = method_data['mean']
                 std = method_data['std']
                 print(f'max std {fname}', max(std))
-                std_factor = 1e5
+                std_factor = 1
                 plt.plot(x, y, label=method, color=colors[_ind], marker=markers[_ind], markersize=marker_size)
                 y_std_down = [max(y[i] - std_factor * std[i], 0) for i in range(min(len(y), len(std)))]
                 y_std_up = [max(y[i] + std_factor* std[i], 0) for i in range(min(len(y), len(std)))]

@@ -200,7 +200,7 @@ class Plotter:
                 result[problem] = method_trg
         return result
 
-    def _get_fs_dist_to_opt(self, data: dict) -> dict:
+    def _get_f_gap(self, data: dict) -> dict:
         """
         Returns dict {method_label: [[rho_s run_0], ..., [rho_s run_N]]}
         """
@@ -225,7 +225,7 @@ class Plotter:
                 result[problem] = method_trg
         return result
 
-    def _get_xs_dist_to_opt(self, data: dict) -> dict:
+    def _get_x_gap(self, data: dict) -> dict:
         """
         Returns dict {method_label: [[rho_s run_0], ..., [rho_s run_N]]}
         """
@@ -307,7 +307,7 @@ class Plotter:
 
 
 
-    def _plot(self, data_to_plot: dict, title: str = '', save: bool = True, fname: str = '', show: bool = False):
+    def _plot(self, data_to_plot: dict, title: str = '', save: bool = True, fname: str = '', show: bool = False, log=False):
         """
         
         data_to_plot:
@@ -315,12 +315,15 @@ class Plotter:
                      'method2' : {'mean': mean_val(list), 'std': std_val(list)}}
         """
         #print(data_to_plot)
+        markers = ['.', 'o', '^', '<', '>', '8', 's', 'p', '*', 'd', '1']
         plt.figure()
         for problem, problem_dict in data_to_plot.items():
             for method, method_data in problem_dict.items():
                 x = range(len(method_data['mean']))
                 y = method_data['mean']
                 plt.plot(x, y, label=method)
+                if log:
+                    plt.yscale('log')
             plt.title(f'{problem}, {title}')
             plt.xlabel('iteration')
             plt.legend()
@@ -330,7 +333,7 @@ class Plotter:
                 plt.savefig(f'{self.dir_path}/{fname}')
 
 
-    def plot(self, save: bool = True, show: bool = False):
+    def plot(self, save: bool = True, show: bool = False, log=False):
         """
         Create plots according to the self.metrics. Saves to
         dir_path if save is True.
@@ -339,21 +342,21 @@ class Plotter:
         data = self._sparse_data()
         for metric in self.metrics:
             if metric == 'fs':
-                self._plot(self._mean_std(self._get_fs(data)), title='func vals', save=save, fname='fs', show=show)
+                self._plot(self._mean_std(self._get_fs(data)), title='func vals', save=save, fname='fs', show=show, log=log)
             if metric == 'xs_norm':
-                self._plot(self._mean_std(self._get_xs_norms(data)), title='||x||', save=save, fname='xs_norm', show=show)
-            if metric == 'fs_dist_to_opt':
-                self._plot(self._mean_std(self._get_fs_dist_to_opt(data)), title='|f-f*|', save=save, fname='fs_dist_to_opt', show=show)
-            if metric == 'xs_dist_to_opt':
-                self._plot(self._mean_std(self._get_xs_dist_to_opt(data)), title='||x-x*||', save=save, fname='xs_dist_to_opt', show=show)
+                self._plot(self._mean_std(self._get_xs_norms(data)), title='||x||', save=save, fname='xs_norm', show=show, log=log)
+            if metric == 'f_gap':
+                self._plot(self._mean_std(self._get_f_gap(data)), title='|f-f*|', save=save, fname='f_gap', show=show, log=log)
+            if metric == 'x_gap':
+                self._plot(self._mean_std(self._get_x_gap(data)), title='||x-x*||', save=save, fname='x_gap', show=show, log=log)
             if metric == 'grads_norm':
-                self._plot(self._mean_std(self._get_grads_norm(data)), title='||grad f||', save=save, fname='grads_norm', show=show)
+                self._plot(self._mean_std(self._get_grads_norm(data)), title='||grad f||', save=save, fname='grads_norm', show=show, log=log)
 
 
 def test_local():
     plotter = Plotter(
-        #metrics= ['fs', 'xs_norm', 'fs_dist_to_opt', 'xs_dist_to_opt', 'grads_norm'],
-        metrics= ['fs', 'xs_norm', 'fs_dist_to_opt'],
+        #metrics= ['fs', 'xs_norm', 'f_gap', 'x_gap', 'grads_norm'],
+        metrics= ['fs', 'xs_norm', 'f_gap'],
         data_path='GD_quadratic.json'
     )
     plotter.plot()

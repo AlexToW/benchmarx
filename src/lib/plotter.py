@@ -315,7 +315,7 @@ class Plotter:
                      'method2' : {'mean': mean_val(list), 'std': std_val(list)}}
         """
         #print(data_to_plot)
-        markers = ['.', 'o', '^', '<', '>', '8', 's', 'p', '*', 'd', '1']
+        markers = ['.', 's', 'p', '*', 'd', 'o', '^', '<', '>', '8', '1']
         marker_size = 5
         plt.figure()
         for problem, problem_dict in data_to_plot.items():

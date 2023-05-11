@@ -316,13 +316,14 @@ class Plotter:
         """
         #print(data_to_plot)
         markers = ['.', 'o', '^', '<', '>', '8', 's', 'p', '*', 'd', '1']
+        marker_size = 5
         plt.figure()
         for problem, problem_dict in data_to_plot.items():
             marker_ind = 0
             for method, method_data in problem_dict.items():
                 x = range(len(method_data['mean']))
                 y = method_data['mean']
-                plt.plot(x, y, label=method, marker=markers[marker_ind])
+                plt.plot(x, y, label=method, marker=markers[marker_ind], markersize=marker_size)
                 marker_ind += 1
                 marker_ind %= len(markers)
                 if log:

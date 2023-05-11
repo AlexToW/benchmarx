@@ -83,14 +83,14 @@ def run_experiment():
 
 
 def run_experiment_small():
-    n = 6
+    n = 7
     key = jax.random.PRNGKey(758493)
     x_init = jax.random.uniform(key, shape=(n,))
     problem = QuadraticProblem(n=n)
     L = float(jnp.max(jnp.real(jnp.linalg.eigh(problem.A)[0])))
     maxiter = 250
     benchmark = Benchmark(
-        runs=1000,
+        runs=33,
         problem=problem,
         methods=[
             {
@@ -124,7 +124,7 @@ def draw():
 
 def _main():
     logging.getLogger().setLevel(logging.INFO)
-    #run_experiment_small()
+    run_experiment_small()
     draw()
 
 

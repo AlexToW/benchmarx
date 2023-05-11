@@ -181,38 +181,39 @@ class Benchmark:
                         seed = params['seed']
                         params.pop('seed')
                     runs_dict = dict()
-                    for run in range(self.runs):
-                        if cls:
-                            ls = params['linesearch']
-                            params.pop('linesearch')
-                            if 'condition' in params:
-                                condition = params['condition']
-                                params.pop('condition')
-                            if isinstance(ls, str):
-                                if ls == 'backtracking':
-                                    if condition in ['wolfe', 'strong-wolfe', 'armijo', 'goldstein']:
-                                        ls_obj = jaxopt.BacktrackingLineSearch(fun=self.problem.f, maxiter=20, condition=condition, decrease_factor=0.8)
-                                    else:
-                                        err_msg = f'Unknown condition {condition}'
-                                        logging.critical(err_msg)
-                                        exit(1)
-                                elif ls == 'hager-zhang':
-                                    ls_obj = jaxopt.HagerZhangLineSearch(fun=self.problem.f)
+                    solver = None
+                    if cls:
+                        ls = params['linesearch']
+                        params.pop('linesearch')
+                        if 'condition' in params:
+                            condition = params['condition']
+                            params.pop('condition')
+                        if isinstance(ls, str):
+                            if ls == 'backtracking':
+                                if condition in ['wolfe', 'strong-wolfe', 'armijo', 'goldstein']:
+                                    ls_obj = jaxopt.BacktrackingLineSearch(fun=self.problem.f, maxiter=20, condition=condition, decrease_factor=0.8)
                                 else:
-                                    err_msg = f'Unknown line search {ls}'
+                                    err_msg = f'Unknown condition {condition}'
                                     logging.critical(err_msg)
                                     exit(1)
-                                solver = GradientDescentCLS(fun=self.problem.f, **params)
-                                solver.linesearch_custom = ls_obj
-                            elif isinstance(ls, jaxopt.BacktrackingLineSearch):
-                                solver = GradientDescentCLS(fun=self.problem.f, **params)
-                                solver.linesearch_custom = ls
+                            elif ls == 'hager-zhang':
+                                ls_obj = jaxopt.HagerZhangLineSearch(fun=self.problem.f)
                             else:
-                                err_msg = f'Unknown linesearch {ls}'
+                                err_msg = f'Unknown line search {ls}'
                                 logging.critical(err_msg)
                                 exit(1)
+                            solver = GradientDescentCLS(fun=self.problem.f, **params)
+                            solver.linesearch_custom = ls_obj
+                        elif isinstance(ls, jaxopt.BacktrackingLineSearch):
+                            solver = GradientDescentCLS(fun=self.problem.f, **params)
+                            solver.linesearch_custom = ls
                         else:
-                            solver = jaxopt.GradientDescent(fun=self.problem.f, **params)
+                            err_msg = f'Unknown linesearch {ls}'
+                            logging.critical(err_msg)
+                            exit(1)
+                    else:
+                        solver = jaxopt.GradientDescent(fun=self.problem.f, **params)
+                    for run in range(self.runs):
                         sub = self.__run_solver(solver=solver, x_init=x_init, metrics=self.metrics, **params)    
                         runs_dict[f'run_{run}'] = sub
                     params['x_init'] = x_init

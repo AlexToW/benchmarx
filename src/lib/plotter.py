@@ -40,14 +40,13 @@ class Plotter:
         A_str in format:
         "[[0.96531415 0.84779143 0.72762513]\n [0.31114805 0.03425407 0.31510842]\n [0.12594318 0.42591357 0.8050107 ]]"
         """
-        #pre_raws = A_str.split('\n')
-        pre_raws = [s.strip() for s in A_str.split('\n')]
-        if len(pre_raws) > 0 and pre_raws[0][0] == '[' and pre_raws[0][1] == '[':
-            pre_raws[0] = pre_raws[0][1:]
-        if len(pre_raws) > 0 and pre_raws[-1][-1] == ']' and pre_raws[-1][-2] == ']':
-            pre_raws[-1] = pre_raws[-1][:-1]
-        raws = [raw[1:-1].strip() for raw in pre_raws]
-        return jnp.array([jnp.fromstring(raw, sep=' ') for raw in raws])
+        pre_raws = A_str.split(']')
+        pre_raws[0] = pre_raws[0][1:]
+        pre_raws = [val.strip() + ']' for val in pre_raws if len(val) > 0]
+        raws = [raw[1:-1].strip().replace('\n', '') for raw in pre_raws]
+        A = jnp.array([jnp.fromstring(raw, sep=' ') for raw in raws])
+        return A
+
     
     def _convert(self, val):
         """
@@ -65,6 +64,7 @@ class Plotter:
                     # val is like ['[2. 1.]', '[7.5 8.]']
                     res = list()
                     for item in val:
+                        item = item.replace('\n', '')
                         tmp = jnp.array([float(x) for x in item[1:-1].split(' ') if len(x) > 0])
                         res.append(tmp)
                     return res
@@ -73,6 +73,7 @@ class Plotter:
                     return [float(x) for x in val]
             
         elif isinstance(val, str):
+            val = val.replace('\n', '')
             if val[0] == '[' and val[-1] == ']':
                 # val is like '[2. 1.]'
                 return jnp.array([float(x) for x in (val[1:-1]).split(' ') if len(x) > 0])
@@ -330,7 +331,7 @@ class Plotter:
                 x = range(len(method_data['mean']))
                 y = method_data['mean']
                 std = method_data['std']
-                print(f'max std {fname}', max(std))
+                #print(f'max std {fname}', max(std))
                 std_factor = 1
                 plt.plot(x, y, label=method, color=colors[_ind], marker=markers[_ind], markersize=marker_size)
                 y_std_down = [max(y[i] - std_factor * std[i], 0) for i in range(min(len(y), len(std)))]

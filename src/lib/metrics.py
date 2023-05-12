@@ -21,15 +21,22 @@ available_metrics_to_plot = [
     'grads_norm'
 ]
 
+nn_aval_metrics = [
+    'test_acc',
+    'train_acc',
+    'test_loss',
+    'train_loss'
+]
+
 
 def check_plot_metric(metric: str):
-    return metric in available_metrics_to_plot
+    return metric in available_metrics_to_plot or metric in nn_aval_metrics
 
 
 def check_plot_metric(metric: list[str]):
     for item in metric:
-        if item not in available_metrics_to_plot:
-            logging.critical(f'Unsupported metric \'{item}\' to plot. Available metrics to plot: {available_metrics_to_plot}')
+        if item not in available_metrics_to_plot and item not in nn_aval_metrics:
+            logging.critical(f'Unsupported metric \'{item}\' to plot. Available metrics to plot: {available_metrics_to_plot}, {nn_aval_metrics}')
             return False
     return True
 

@@ -18,6 +18,8 @@ import logging
 import sys
 import os
 
+from plotter import Plotter
+
 sys.path.insert(1, os.path.abspath(os.path.join(os.path.dirname("src"), "..")))
 
 ### Model
@@ -216,6 +218,8 @@ class NNBenchmark:
         self.methods = methods
     
     def run(self, save: bool = False, path: str = ''):
+        if len(path) > 0:
+            self.path = path
         result_metrics = dict()
 
         for label, config in self.methods.items():
@@ -224,12 +228,27 @@ class NNBenchmark:
             method = config['method']
             config.pop('method')
             result_metrics[label] = tmp_metrics
-        
+
         if save and len(path) > 0:
             with open(path, 'w') as fp:
                 json.dump(result_metrics, fp, indent=4)
         else:
             print(result_metrics)
+
+    def plot(self,
+             metrics_to_plot = ['train_acc', 'test_acc', 'train_loss', 'test_loss'],
+             data_path='',
+             dir_path = '.',
+             save: bool = True,
+             show: bool = False,
+             log: bool = True):
+        if len(data_path) == 0:
+            data_path = self.path
+        
+        plotter_ = Plotter(metrics=metrics_to_plot, 
+                           data_path=data_path,
+                           dir_path=dir_path)
+        plotter_._plot_nn_data(save=save, show=show, log=log)
 
 
 def run_experiment():

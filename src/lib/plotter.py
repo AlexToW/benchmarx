@@ -16,7 +16,7 @@ import re
 import logging
 import jax.numpy as jnp
 
-from problems.quadratic_problem import QuadraticProblem
+#from problems.quadratic_problem import QuadraticProblem
 
 
 import metrics as _metrics
@@ -107,10 +107,6 @@ class Plotter:
         fields are converted from strings to the appropriate type.
         """
 
-        """
-        !!!! fix \n!!!
-        """
-
         raw_data = dict()
         with open(self.data_path) as json_file:
             raw_data = json.load(json_file)
@@ -163,6 +159,87 @@ class Plotter:
                 good_data[problem]['f_opt'] = f_opt
 
         return good_data
+
+    def _sparse_nn_data(self) -> dict:
+        data = dict()
+        with open(self.data_path, 'r') as json_file:
+            data = json.load(json_file)
+        return data
+    
+    def _plot_nn_metric(self, data_to_plot: dict, ylabel='ylabel', title: str = '', save: bool = True, fname: str = '', show: bool = False, log=False):
+        markers = ['.', 'p', '*', 'd', 'o', '^', '<', '>', '8', '1']
+        colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']
+        marker_size = 2
+        plt.figure(figsize = (3.5,2.5))
+        _ind = 0
+        for method, method_data in data_to_plot.items():
+            x = range(len(method_data))
+            y = method_data
+            plt.plot(x, y, label=method, color=colors[_ind], marker=markers[_ind], markersize=marker_size)
+            _ind += 1
+            _ind %= len(markers)
+            _ind %= len(colors)
+            if log:
+                plt.yscale('log')
+        plt.title(f'{title}')
+        plt.xlabel('Epoch', fontsize=12)
+        plt.ylabel(ylabel)
+        plt.grid(linestyle='--', linewidth=0.4)
+        plt.legend(fontsize=8)
+        plt.tight_layout()
+        if show:
+            plt.show()
+        if save:
+            plt.savefig(f'{self.dir_path}/{fname}.pdf', format='pdf')
+
+    def _plot_nn_data(self, save: bool = True, show: bool = False, log=False):
+        data = self._sparse_nn_data()
+
+        for metric in self.metrics:
+            if metric == 'test_acc':
+                data_to_plot = dict()
+                for method, m_data in data.items():
+                    data_to_plot[method] = m_data['test_accuracy_history']
+                self._plot_nn_metric(data_to_plot=data_to_plot, 
+                                     ylabel='Test accuracy', 
+                                     title='Test accuracy', 
+                                     save=save, 
+                                     fname='test_acc_plot', 
+                                     show=show, 
+                                     log=log)
+            if metric == 'train_acc':
+                data_to_plot = dict()
+                for method, m_data in data.items():
+                    data_to_plot[method] = m_data['train_accuracy_history']
+                self._plot_nn_metric(data_to_plot=data_to_plot,
+                                     ylabel='Train accuracy', 
+                                     title='Train accuracy',
+                                     save=save, 
+                                     fname='train_acc_plot', 
+                                     show=show, 
+                                     log=log)
+            if metric == 'test_loss':
+                data_to_plot = dict()
+                for method, m_data in data.items():
+                    data_to_plot[method] = m_data['test_loss_history']
+                self._plot_nn_metric(data_to_plot=data_to_plot,
+                                    ylabel='Test loss',
+                                    title='Test loss',
+                                    save=save,
+                                    fname='test_loss_plot',
+                                    show=show,
+                                    log=log)
+            if metric == 'train_loss':
+                data_to_plot = dict()
+                for method, m_data in data.items():
+                    data_to_plot[method] = m_data['train_loss_history']
+                self._plot_nn_metric(data_to_plot=data_to_plot,
+                                    ylabel='Train loss',
+                                    title='Train loss',
+                                    save=save, 
+                                    fname='train_loss_plot',
+                                    show=show, 
+                                    log=log)
 
     def _get_fs(self, data: dict) -> dict:
         """
@@ -359,7 +436,6 @@ class Plotter:
         Create plots according to the self.metrics. Saves to
         dir_path if save is True.
         """
-
         data = self._sparse_data()
         for metric in self.metrics:
             if metric == 'fs':

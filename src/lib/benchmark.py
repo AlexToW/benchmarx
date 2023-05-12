@@ -7,14 +7,12 @@ import logging
 
 from problem import Problem
 import methods as _methods
-
-# from benchmark_target import BenchmarkTarget
 import metrics as _metrics
 from benchmark_result import BenchmarkResult
-from problems.quadratic_problem import QuadraticProblem
 import custom_optimizer
 
 from ProxGD_custom_linesearch import GradientDescentCLS
+from plotter import Plotter
 
 
 class Benchmark:
@@ -405,7 +403,18 @@ class Benchmark:
         res.data = data
         return res
 
+    def plot(self, 
+             metrics_to_plot = ['fs', 'xs_norm', 'f_gap', 'x_gap', 'grads_norm'], 
+             data_path = '', 
+             dir_path = '.',
+             save: bool = True,
+             show: bool = False,
+             log: bool = True):
+        plotter_ = Plotter(metrics=metrics_to_plot, data_path=data_path, dir_path=dir_path)
+        plotter_.plot(save=save, show=show, log=log)
 
+
+"""
 def test_local():
     from problems.quadratic_problem import QuadraticProblem
 
@@ -471,3 +480,4 @@ def test_local():
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.INFO)
     test_local()
+"""

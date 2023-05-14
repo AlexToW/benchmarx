@@ -6,4 +6,3 @@ pandas>=2.0.1
 plotly>=5.14.1
 flax>=0.6.10
 tensorflow_datasets
-python

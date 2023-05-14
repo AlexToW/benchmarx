@@ -1,0 +1,8 @@
+jax
+jaxopt
+typing-extensions
+wandb
+pandas
+plotly
+flax
+tensorflow_datasets

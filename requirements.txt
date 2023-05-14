@@ -6,3 +6,4 @@ pandas
 plotly
 flax
 tensorflow_datasets
+python>=3.10.9

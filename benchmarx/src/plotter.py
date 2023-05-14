@@ -10,7 +10,8 @@ import pandas as pd
 #=======================
 import matplotlib.pyplot as plt
 
-
+import os
+import pathlib
 import json
 import re
 import logging
@@ -388,7 +389,11 @@ class Plotter:
             result[problem] = trg_dict
         return result
                 
-
+    def _prepare_dir(self):
+        full_path = str(pathlib.Path().resolve()) + "/" + self.dir_path
+        #print(f'Exists: {os.path.exists(full_path)}, path: {full_path}')
+        if not os.path.exists(full_path):
+            os.mkdir(full_path)
 
 
     def _plot(self, data_to_plot: Dict, ylabel='ylabel', title: str = '', save: bool = True, fname: str = '', show: bool = False, log=False):
@@ -434,6 +439,7 @@ class Plotter:
             if show:
                 plt.show()
             if save:
+                self._prepare_dir()
                 plt.savefig(f'{self.dir_path}/{fname}.pdf', format='pdf')
             plt.close()
 

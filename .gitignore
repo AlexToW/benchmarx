@@ -8,3 +8,7 @@ test.py
 *wandb*
 /src/lib/wandb
 /books
+build
+dist
+benchmarx.egg-info
+pyproject.toml

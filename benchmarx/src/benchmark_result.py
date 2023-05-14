@@ -7,11 +7,10 @@ import uuid
 import jax
 import jax.numpy as jnp
 
-from benchmarx.src.metrics import *
+from benchmarx.src import metrics as _metrics
 from benchmarx.src.problem import Problem
 from benchmarx.src.plotter import Plotter 
 import benchmarx.src.quadratic_problem as quadratic_problem
-import benchmarx.src.metrics
 
 
 class BenchmarkResult:
@@ -30,7 +29,7 @@ class BenchmarkResult:
     ) -> None:
         self.problem = problem
         self.methods = methods
-        if not check_metric(metrics):
+        if not _metrics.check_metric(metrics):
             exit(1)
         self.metrics = metrics
         self.data = data

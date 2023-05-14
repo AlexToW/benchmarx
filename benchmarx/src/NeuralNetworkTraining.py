@@ -17,6 +17,7 @@ import json
 import logging
 import sys
 import os
+from typing import List, Dict
 
 from benchmarx.src.plotter import Plotter
 
@@ -46,7 +47,7 @@ model = CNN()
 class NeuralNetwokTraining:
     train_ds = None
     test_ds = None
-    config: dict = None
+    config: Dict = None
     aval_methods = ['sgd', 'adam', 'novograd', 'adagrad']
     method: str = None
     def __init__(self, config = None, method: str = 'sgd') -> None:
@@ -206,11 +207,11 @@ class NeuralNetwokTraining:
 
 class NNBenchmark:
     # methods: {method: config}. LABEL key in config
-    methods: dict = None
+    methods: Dict = None
     aval_methods = ['sgd', 'adam', 'novograd', 'adagrad']
     save: bool
     path: str
-    def __init__(self, methods: dict) -> None:
+    def __init__(self, methods: Dict) -> None:
         for label, data in methods.items():
             if data['method'] not in self.aval_methods:
                 logging.critical(f'Bad method {data["method"]}. Available methods: {self.aval_methods}')

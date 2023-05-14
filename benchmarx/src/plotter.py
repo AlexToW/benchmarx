@@ -15,6 +15,7 @@ import json
 import re
 import logging
 import jax.numpy as jnp
+from typing import List, Dict
 
 #from problems.quadratic_problem import QuadraticProblem
 
@@ -23,11 +24,11 @@ import benchmarx.src.metrics as _metrics
 
 
 class Plotter:
-    metrics: list[str]      # metrics to plot
+    metrics: List[str]      # metrics to plot
     data_path: str          # path to a json file with the necessary data
     dir_path: str          # path to directory to save plots 
     
-    def __init__(self, metrics: list[str], data_path: str, dir_path: str = '.') -> None:
+    def __init__(self, metrics: List[str], data_path: str, dir_path: str = '.') -> None:
         if not _metrics.check_plot_metric(metrics):
             exit(1)
         self.metrics = metrics
@@ -58,7 +59,7 @@ class Plotter:
         'MyGD'
         """
 
-        if isinstance(val, list):
+        if isinstance(val, List):
             if len(val) > 0 and isinstance(val[0], str):
                 if val[0][0] == '[' and val[0][-1] == ']':
                     # val is like ['[2. 1.]', '[7.5 8.]']
@@ -101,7 +102,7 @@ class Plotter:
             logging.critical(f'Can\'t convert {val}')
             return 'wtf'
 
-    def _sparse_data(self) -> dict:
+    def _sparse_data(self) -> Dict:
         """
         Returns the dictionary from the file (data_path), in which 
         fields are converted from strings to the appropriate type.
@@ -160,13 +161,13 @@ class Plotter:
 
         return good_data
 
-    def _sparse_nn_data(self) -> dict:
+    def _sparse_nn_data(self) -> Dict:
         data = dict()
         with open(self.data_path, 'r') as json_file:
             data = json.load(json_file)
         return data
     
-    def _plot_nn_metric(self, data_to_plot: dict, ylabel='ylabel', title: str = '', save: bool = True, fname: str = '', show: bool = False, log=False):
+    def _plot_nn_metric(self, data_to_plot: Dict, ylabel='ylabel', title: str = '', save: bool = True, fname: str = '', show: bool = False, log=False):
         markers = ['.', 'p', '*', 'd', 'o', '^', '<', '>', '8', '1']
         colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']
         marker_size = 2
@@ -241,7 +242,7 @@ class Plotter:
                                     show=show, 
                                     log=log)
 
-    def _get_fs(self, data: dict) -> dict:
+    def _get_fs(self, data: Dict) -> Dict:
         """
         Returns dict {method_label: [list[func vals run_0], ... ,list[func vals run_N]]}
         """
@@ -262,7 +263,7 @@ class Plotter:
                 result[problem] = method_trg
         return result
 
-    def _get_xs_norms(self, data: dict) -> dict:
+    def _get_xs_norms(self, data: Dict) -> Dict:
         """
         Returns dict {method_label: [list[xs norms run_0], ... ,list[xs norms run_N]]}
         """
@@ -283,7 +284,7 @@ class Plotter:
                 result[problem] = method_trg
         return result
 
-    def _get_f_gap(self, data: dict) -> dict:
+    def _get_f_gap(self, data: Dict) -> Dict:
         """
         Returns dict {method_label: [[rho_s run_0], ..., [rho_s run_N]]}
         """
@@ -308,7 +309,7 @@ class Plotter:
                 result[problem] = method_trg
         return result
 
-    def _get_x_gap(self, data: dict) -> dict:
+    def _get_x_gap(self, data: Dict) -> Dict:
         """
         Returns dict {method_label: [[rho_s run_0], ..., [rho_s run_N]]}
         """
@@ -333,7 +334,7 @@ class Plotter:
                 result[problem] = method_trg
         return result
     
-    def _get_grads_norm(self, data: dict) -> dict:
+    def _get_grads_norm(self, data: Dict) -> Dict:
         """
         Returns dict 
         {method_label: [list[grads norms run_0], ... ,list[grads norms run_N]]}
@@ -356,7 +357,7 @@ class Plotter:
         return result
 
 
-    def _mean_std(self, data: dict) -> dict:
+    def _mean_std(self, data: Dict) -> Dict:
         """
         Average over runs
         data like {'problem': {'method1': 
@@ -390,7 +391,7 @@ class Plotter:
 
 
 
-    def _plot(self, data_to_plot: dict, ylabel='ylabel', title: str = '', save: bool = True, fname: str = '', show: bool = False, log=False):
+    def _plot(self, data_to_plot: Dict, ylabel='ylabel', title: str = '', save: bool = True, fname: str = '', show: bool = False, log=False):
         """
         
         data_to_plot:

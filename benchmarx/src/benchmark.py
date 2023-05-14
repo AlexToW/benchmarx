@@ -4,6 +4,7 @@ import jax.numpy as jnp
 
 import time
 import logging
+from typing import List, Dict
 
 from benchmarx.src.problem import Problem
 import benchmarx.src.methods as _methods
@@ -23,17 +24,17 @@ class Benchmark:
 
     runs: int = 1       # the number of runs of each method
     problem: Problem = None  # Problem to solve
-    methods: list[dict[str : dict[str:any]]] = None  # Methods for benchmarking
-    available_built_in_methods: list[str] = None # method's keywords. 
+    methods: List[Dict[str : Dict[str:any]]] = None  # Methods for benchmarking
+    available_built_in_methods: List[str] = None # method's keywords. 
     # If you want to call a method from the jaxopt, 
     # the name of the method must begin with one of these keywords.
-    metrics: list[str] = None  # List of fields to include in BenchamrkResult
+    metrics: List[str] = None  # List of fields to include in BenchamrkResult
     aval_linesearch_str = ['armijo', 'goldstein', 'strong-wolfe', 'wolfe']
     def __init__(
         self,
         problem: Problem,
-        methods: list[dict[str : dict[str:any]]],
-        metrics: list[str],
+        methods: List[Dict[str : Dict[str:any]]],
+        metrics: List[str],
         runs: int = 1
     ) -> None:
         self.runs = runs
@@ -60,8 +61,8 @@ class Benchmark:
         return False
 
     def __run_solver(
-        self, solver, x_init, metrics: list[str], *args, **kwargs
-    ) -> dict[str, list[any]]:
+        self, solver, x_init, metrics: List[str], *args, **kwargs
+    ) -> Dict[str, List[any]]:
         """
         A layer for pulling the necessary information according to metrics
         as the "method" solver works (solver like jaxopt.GradientDescent obj

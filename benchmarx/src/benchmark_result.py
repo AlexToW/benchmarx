@@ -12,20 +12,22 @@ from benchmarx.src.problem import Problem
 from benchmarx.src.plotter import Plotter 
 import benchmarx.src.quadratic_problem as quadratic_problem
 
+from typing import List, Dict
+
 
 class BenchmarkResult:
     #methods: list[Method] = None  # methods that have been benchmarked
-    methods: list[str] = None
-    metrics: list[str] = None  # an array of fields that will be assigned to each of the methods from self.methods
+    methods: List[str] = None
+    metrics: List[str] = None  # an array of fields that will be assigned to each of the methods from self.methods
     problem: Problem = None  # the Problem on which the benchmarking was performed
     #data: dict[Problem, dict[Method, dict[str, list[any]]]] = None
-    data: dict[Problem, dict[str, dict[str, list[any]]]] = None
+    data: Dict[Problem, Dict[str, Dict[str, List[any]]]] = None
     def __init__(
         self,
         problem: Problem,
-        methods: list[str],
-        metrics: list[str],
-        data: dict[Problem, dict[str, dict[str, list[any]]]] = None,
+        methods: List[str],
+        metrics: List[str],
+        data: Dict[Problem, Dict[str, Dict[str, List[any]]]] = None,
     ) -> None:
         self.problem = problem
         self.methods = methods

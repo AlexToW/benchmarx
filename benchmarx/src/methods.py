@@ -1,5 +1,5 @@
 import logging
-
+from typing import List
 
 available_built_in_methods = [
     'GRADIENT_DESCENT',
@@ -9,7 +9,7 @@ available_built_in_methods = [
     'PolyakSGD'
 ]
 
-def check_method(methods: list[str]):
+def check_method(methods: List[str]):
     for method in methods:
         for avail_method in available_built_in_methods:
             if method.startswith(avail_method):

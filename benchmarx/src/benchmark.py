@@ -24,7 +24,7 @@ class Benchmark:
 
     runs: int = 1       # the number of runs of each method
     problem: Problem = None  # Problem to solve
-    methods: List[Dict[str : Dict[str:any]]] = None  # Methods for benchmarking
+    methods: List[Dict[str, Dict[str, any]]] = None  # Methods for benchmarking
     available_built_in_methods: List[str] = None # method's keywords. 
     # If you want to call a method from the jaxopt, 
     # the name of the method must begin with one of these keywords.
@@ -33,7 +33,7 @@ class Benchmark:
     def __init__(
         self,
         problem: Problem,
-        methods: List[Dict[str : Dict[str:any]]],
+        methods: List[Dict[str, Dict[str, any]]],
         metrics: List[str],
         runs: int = 1
     ) -> None:

@@ -12,3 +12,4 @@ build
 dist
 benchmarx.egg-info
 pyproject.toml
+examples/*.json

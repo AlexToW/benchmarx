@@ -20,3 +20,12 @@ Alternatively, it can be installed from sources with the following command:
 ```bash
 $ python setup.py install
 ```
+
+## Examples
+
+Refer to the examples provided in the repository for details on how to use this package.
+
+
+## Contribution
+
+Contributions are welcome! If you have any suggestions or issues, feel free to open an issue or submit a pull request.

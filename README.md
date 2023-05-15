@@ -25,6 +25,8 @@ $ python setup.py install
 
 Refer to the examples provided in the repository for details on how to use this package.
 
+-[Gradient Descent on Quadratic problem] [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)][https://colab.research.google.com/drive/13bX2ZeOASEEKBWSbaTeY0Sm5g3ImaoLk?usp=sharing]
+
 
 ## Contribution
 

@@ -68,4 +68,4 @@ class LogLossL2Reg(Problem):
 
     def _generate_y(self):
         key = jax.random.PRNGKey(self.seed)
-        return jax.random.uniform(key, (self.n))
+        return jax.random.uniform(key, (self.n,))

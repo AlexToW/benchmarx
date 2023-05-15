@@ -7,7 +7,7 @@ with open("README.md", "r") as f:
 
 setup(
     name="benchmarx",
-    version="0.0.9",
+    version="0.0.10",
     description="Tools for benchmarking optimization methods",
     #package_dir={"" : "benchmarx"},
     #py_modules=['benchmarx'],

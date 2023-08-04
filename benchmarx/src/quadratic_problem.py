@@ -1,6 +1,8 @@
 import jax
 import sys
 import os
+import scipy.linalg as la
+import logging
 import jax.numpy as jnp
 
 
@@ -20,11 +22,11 @@ class QuadraticProblem(Problem):
     A = None  # A-matrix: np.array of shape (n,n)
     b = None  # b-vector: np.array of shape (n,)
     seed = default_seed
-    def __init__(self, n: int = 2, A=None, b=None, info: str = "Quadratic problem"):
+    def __init__(self, n: int = 2, A=None, b=None, mineig=0, maxeig=1, info: str = "Quadratic problem"):
         self.n = n
 
         if A is None:
-            self.A = self.__get_random_matrix(self.n)
+            self.A = self.__get_random_matrix(self.n, maxeig=maxeig, mineig=mineig)
         else:
             self.A = A
 
@@ -46,13 +48,30 @@ class QuadraticProblem(Problem):
         x = jnp.array(x)
         return 0.5 * x.T @ self.A @ x + self.b.T @ x
 
-    def __get_random_matrix(self, n: int = 2):
+    def __get_random_matrix(self, n: int = 2, mineig=0, maxeig=1):
         """
         Returns a positive defined matrix of size (n, n)
+        with eigenvalues in [mineig, maxeig]
         """
         key = jax.random.PRNGKey(self.seed)
-        A = jax.random.uniform(key, (n, n))
-        return A @ A.T
+
+        lambdas = list()  # eigenvalues of matrix to generate
+
+        if n == 1:
+            if mineig == maxeig:
+                lambdas = [mineig]
+            else:
+                logging.critical(msg="It is impossible to create a matrix of shape (1,1) with two different eigenvalues.")
+        if n == 2:
+            lambdas = [mineig, maxeig]
+        else:
+            lambdas = jax.random.uniform(key, minval=mineig, maxval=maxeig, shape=(n-2,))
+            lambdas = lambdas.tolist() + [mineig, maxeig]
+
+        A = jnp.diag(jnp.array(lambdas))
+        q, _ = la.qr(jax.random.uniform(key, (n, n)))
+        A = q.T @ A @ q
+        return A
 
     def __get_random_vector(self, n: int = 2):
         """

@@ -11,6 +11,7 @@ import benchmarx.src.methods as _methods
 import benchmarx.src.metrics as _metrics
 from benchmarx.src.benchmark_result import BenchmarkResult
 from benchmarx.src import custom_optimizer
+from benchmarx.src.custom_optimizer import CustomOptimizer
 
 from benchmarx.src.ProxGD_custom_linesearch import GradientDescentCLS
 from benchmarx.src.plotter import Plotter
@@ -68,13 +69,13 @@ class Benchmark:
         as the "method" solver works (solver like jaxopt.GradientDescent obj
         or or an heir to the CustomOptimizer class)
         """
-        custom_method = issubclass(type(solver), custom_optimizer.CustomOptimizer)
+        custom_method_flag = issubclass(type(solver), custom_optimizer.CustomOptimizer)
         #cls = hasattr(solver, 'linesearch_custom')
         result = dict()
         start_time = time.time()
         state = solver.init_state(x_init, *args, **kwargs)
         sol = x_init
-        if custom_method and sol is None:
+        if custom_method_flag and sol is None:
             sol = solver.x_init
         
         x_prev = sol
@@ -99,9 +100,9 @@ class Benchmark:
         #print(tol)
         for i in range(solver.maxiter):
             if i > 0:
-                if not custom_method and stop_criterion(state.error, tol):
+                if not custom_method_flag and stop_criterion(state.error, tol):
                     break
-                if custom_method and solver.stop_criterion(sol, state):
+                if custom_method_flag and solver.stop_criterion(sol, state):
                     break
             if isinstance(sol, float):
                 sol = jnp.array([sol])
@@ -140,7 +141,7 @@ class Benchmark:
                 else:
                     result["errors"].append(state.error)
             x_prev = sol
-            if custom_method:
+            if custom_method_flag:
                 sol, state = update(sol, state)
             else:
                 sol, state = jitted_update(sol, state)
@@ -150,153 +151,99 @@ class Benchmark:
 
         return result
 
-    def run(self, user_method = None) -> BenchmarkResult:
+    def run(self, custom_method = None) -> BenchmarkResult:
         res = BenchmarkResult(problem=self.problem, methods=list(), metrics=self.metrics)
         data = dict()
         data[self.problem] = dict()
         # methods: list[dict[method(str) : dict[str:any]]]
         for item in self.methods:
             for method, params in item.items():
-                # data: dict[Problem, dict[method(str), dict[str, list[any]]]]
-                
-                #======= custom line search =======
-                # A class jaxopt.BacktrackingLineSearch object or str is expected.
-                # For Gradient Descent: params['linesearch'] in ['wolfe', 'strong-wolfe', 'armijo', 'goldstein']
-                # For (L)BFGS: params['linesearch'] must be str from 
-                # ['backtracking', 'zoom', 'hager-zhang'] or ['wolfe', 'strong-wolfe', 'armijo', 'goldstein']. 
-                cls = 'linesearch' in params
-          
-                if method.startswith('GRADIENT_DESCENT'):
-                    logging.info('Default gradient descent')
-                    res.methods.append(method)
-                    x_init = None
-                    label = 'jaxopt.GradientDescent'
-                    seed = str(self.problem.seed)
-                    if 'x_init' in params:
-                        x_init = params['x_init']
-                        params.pop('x_init')
-                    if 'label' in params:
-                        label = params['label']
-                        params.pop('label')
-                    if 'seed' in params:
-                        seed = params['seed']
-                        params.pop('seed')
-                    runs_dict = dict()
-                    solver = None
-                    if cls:
-                        ls = params['linesearch']
-                        params.pop('linesearch')
-                        if 'condition' in params:
-                            condition = params['condition']
-                            params.pop('condition')
-                        if isinstance(ls, str):
-                            if ls == 'backtracking':
-                                if condition in ['wolfe', 'strong-wolfe', 'armijo', 'goldstein']:
-                                    ls_obj = jaxopt.BacktrackingLineSearch(fun=self.problem.f, maxiter=20, condition=condition, decrease_factor=0.8)
+                if not isinstance(params, CustomOptimizer):
+                    # data: dict[Problem, dict[method(str), dict[str, list[any]]]]
+                    
+                    #======= custom line search =======
+                    # A class jaxopt.BacktrackingLineSearch object or str is expected.
+                    # For Gradient Descent: params['linesearch'] in ['wolfe', 'strong-wolfe', 'armijo', 'goldstein']
+                    # For (L)BFGS: params['linesearch'] must be str from 
+                    # ['backtracking', 'zoom', 'hager-zhang'] or ['wolfe', 'strong-wolfe', 'armijo', 'goldstein']. 
+                    cls = 'linesearch' in params
+            
+                    if method.startswith('GRADIENT_DESCENT'):
+                        logging.info('Default gradient descent')
+                        res.methods.append(method)
+                        x_init = None
+                        label = 'jaxopt.GradientDescent'
+                        seed = str(self.problem.seed)
+                        if 'x_init' in params:
+                            x_init = params['x_init']
+                            params.pop('x_init')
+                        if 'label' in params:
+                            label = params['label']
+                            params.pop('label')
+                        if 'seed' in params:
+                            seed = params['seed']
+                            params.pop('seed')
+                        runs_dict = dict()
+                        solver = None
+                        if cls:
+                            ls = params['linesearch']
+                            params.pop('linesearch')
+                            if 'condition' in params:
+                                condition = params['condition']
+                                params.pop('condition')
+                            if isinstance(ls, str):
+                                if ls == 'backtracking':
+                                    if condition in ['wolfe', 'strong-wolfe', 'armijo', 'goldstein']:
+                                        ls_obj = jaxopt.BacktrackingLineSearch(fun=self.problem.f, maxiter=20, condition=condition, decrease_factor=0.8)
+                                    else:
+                                        err_msg = f'Unknown condition {condition}'
+                                        logging.critical(err_msg)
+                                        exit(1)
+                                elif ls == 'hager-zhang':
+                                    ls_obj = jaxopt.HagerZhangLineSearch(fun=self.problem.f)
                                 else:
-                                    err_msg = f'Unknown condition {condition}'
+                                    err_msg = f'Unknown line search {ls}'
                                     logging.critical(err_msg)
                                     exit(1)
-                            elif ls == 'hager-zhang':
-                                ls_obj = jaxopt.HagerZhangLineSearch(fun=self.problem.f)
+                                solver = GradientDescentCLS(fun=self.problem.f, **params)
+                                solver.linesearch_custom = ls_obj
+                            elif isinstance(ls, jaxopt.BacktrackingLineSearch):
+                                solver = GradientDescentCLS(fun=self.problem.f, **params)
+                                solver.linesearch_custom = ls
                             else:
-                                err_msg = f'Unknown line search {ls}'
+                                err_msg = f'Unknown linesearch {ls}'
                                 logging.critical(err_msg)
                                 exit(1)
-                            solver = GradientDescentCLS(fun=self.problem.f, **params)
-                            solver.linesearch_custom = ls_obj
-                        elif isinstance(ls, jaxopt.BacktrackingLineSearch):
-                            solver = GradientDescentCLS(fun=self.problem.f, **params)
-                            solver.linesearch_custom = ls
                         else:
-                            err_msg = f'Unknown linesearch {ls}'
-                            logging.critical(err_msg)
-                            exit(1)
-                    else:
-                        solver = jaxopt.GradientDescent(fun=self.problem.f, **params)
+                            solver = jaxopt.GradientDescent(fun=self.problem.f, **params)
 
-                    for run in range(self.runs):
-                        if run % 10 == 0:
-                            logging.info(f'#{run} run...')
-                        sub = self.__run_solver(solver=solver, x_init=x_init, metrics=self.metrics, **params)    
-                        runs_dict[f'run_{run}'] = sub
-                    params['x_init'] = x_init
-                    params['label'] = label
-                    params['seed'] = seed
-                    data[self.problem][method] = {'hyperparams': params, 'runs': runs_dict}
+                        for run in range(self.runs):
+                            if run % 10 == 0:
+                                logging.info(f'#{run} run...')
+                            sub = self.__run_solver(solver=solver, x_init=x_init, metrics=self.metrics, **params)    
+                            runs_dict[f'run_{run}'] = sub
+                        params['x_init'] = x_init
+                        params['label'] = label
+                        params['seed'] = seed
+                        data[self.problem][method] = {'hyperparams': params, 'runs': runs_dict}
 
-                elif method.startswith('BFGS'):
-                    logging.info('BFGS (jaxopt built-in)')
-                    res.methods.append(method)
-                    x_init = None
-                    label = 'jaxopt.BFGS'
-                    seed = str(self.problem.seed)
-                    if 'x_init' in params:
-                        x_init = params['x_init']
-                        params.pop('x_init')
-                    if 'label' in params:
-                        label = params['label']
-                        params.pop('label')
-                    if 'seed' in params:
-                        seed = params['seed']
-                        params.pop('seed')
-                    runs_dict = dict()
-                    soler = None
-                    if cls:
-                        new_linesearch = 'zoom'
-                        new_condition = 'stron-wolfe'
-                        ls = params['linesearch']
-                        params.pop('linesearch')
-                        cond = ''
-                        if 'condition' in params:
-                            cond = params['condition']
-                            params.pop('condition')
-                        if isinstance(ls, str) and self._check_linesearch(ls, method):
-                            if ls in ['backtracking', 'zoom', 'hager-zhang']:
-                                new_linesearch = ls
-                            else:
-                                err_msg = f'Unknown line search \'{ls}\'. zoom line search will be used instead of {ls}.'
-                                logging.warning(err_msg)
-                            if cond in ['wolfe', 'strong-wolfe', 'armijo', 'goldstein']:
-                                new_condition = cond
-                            else:
-                                err_msg = f'Unknown condition \'{cond}\'. strong-wolfe condition will be used instead if {cond}'
-                                logging.warning(err_msg)
-                        else:
-                            err_msg = f"For BFGS parameter \'linesearch\' must be string from {['wolfe', 'strong-wolfe', 'armijo', 'goldstein']}(condition) or {['backtracking', 'zoom', 'hager-zhang']} (linesearch)"
-                            logging.critical(err_msg)
-                        
-                        solver = jaxopt.BFGS(fun=self.problem.f, linesearch=new_linesearch, condition=new_condition, **params)
-                    else:
-                        solver = jaxopt.BFGS(fun=self.problem.f, **params)
-
-                    for run in range(self.runs):
-                        if run % 10 == 0:
-                            logging.info(f'#{run} run...')
-                        sub = self.__run_solver(solver=solver, x_init=x_init, metrics=self.metrics, **params)    
-                        runs_dict[f'run_{run}'] = sub
-                    params['x_init'] = x_init
-                    params['label'] = label
-                    params['seed'] = seed
-                    data[self.problem][method] = {'hyperparams': params, 'runs': runs_dict}
-
-                elif method.startswith('LBFGS'):
-                    logging.info('LBFGS (jaxopt built-in)')
-                    res.methods.append(method)
-                    x_init = None
-                    label = 'jaxopt.LBFGS'
-                    seed = str(self.problem.seed)
-                    if 'x_init' in params:
-                        x_init = params['x_init']
-                        params.pop('x_init')
-                    if 'label' in params:
-                        label = params['label']
-                        params.pop('label')
-                    if 'seed' in params:
-                        seed = params['seed']
-                        params.pop('seed')
-                    runs_dict = dict()
-                    for run in range(self.runs):
+                    elif method.startswith('BFGS'):
+                        logging.info('BFGS (jaxopt built-in)')
+                        res.methods.append(method)
+                        x_init = None
+                        label = 'jaxopt.BFGS'
+                        seed = str(self.problem.seed)
+                        if 'x_init' in params:
+                            x_init = params['x_init']
+                            params.pop('x_init')
+                        if 'label' in params:
+                            label = params['label']
+                            params.pop('label')
+                        if 'seed' in params:
+                            seed = params['seed']
+                            params.pop('seed')
+                        runs_dict = dict()
+                        soler = None
                         if cls:
                             new_linesearch = 'zoom'
                             new_condition = 'stron-wolfe'
@@ -309,107 +256,199 @@ class Benchmark:
                             if isinstance(ls, str) and self._check_linesearch(ls, method):
                                 if ls in ['backtracking', 'zoom', 'hager-zhang']:
                                     new_linesearch = ls
+                                else:
+                                    err_msg = f'Unknown line search \'{ls}\'. zoom line search will be used instead of {ls}.'
+                                    logging.warning(err_msg)
                                 if cond in ['wolfe', 'strong-wolfe', 'armijo', 'goldstein']:
                                     new_condition = cond
                                 else:
-                                    err_msg = f'Unknown line search \'{ls}\', {cond}'
-                                    logging.critical(err_msg)
-                                    exit(1)
+                                    err_msg = f'Unknown condition \'{cond}\'. strong-wolfe condition will be used instead if {cond}'
+                                    logging.warning(err_msg)
                             else:
-                                err_msg = f"For LBFGS parameter \'linesearch\' must be string from {['wolfe', 'strong-wolfe', 'armijo', 'goldstein']}(condition) or {['backtracking', 'zoom', 'hager-zhang']} (linesearch)"
+                                err_msg = f"For BFGS parameter \'linesearch\' must be string from {['wolfe', 'strong-wolfe', 'armijo', 'goldstein']}(condition) or {['backtracking', 'zoom', 'hager-zhang']} (linesearch)"
                                 logging.critical(err_msg)
                             
-                            solver = jaxopt.LBFGS(fun=self.problem.f, linesearch=new_linesearch, condition=new_condition, **params)
+                            solver = jaxopt.BFGS(fun=self.problem.f, linesearch=new_linesearch, condition=new_condition, **params)
                         else:
-                            solver = jaxopt.LBFGS(fun=self.problem.f, **params)
-                        sub = self.__run_solver(solver=solver, x_init=x_init, metrics=self.metrics, **params)    
-                        runs_dict[f'run_{run}'] = sub
-                    params['x_init'] = x_init
-                    params['label'] = label
-                    params['seed'] = seed
-                    data[self.problem][method] = {'hyperparams': params, 'runs': runs_dict}
+                            solver = jaxopt.BFGS(fun=self.problem.f, **params)
 
-                elif method.startswith('ArmijoSGD'):
-                    logging.info('ArmijoSGD (jaxopt built-in)')
-                    res.methods.append(method)
-                    x_init = None
-                    label = 'jaxopt.ArmijoSGD'
-                    seed = str(self.problem.seed)
-                    if 'x_init' in params:
-                        x_init = params['x_init']
-                        params.pop('x_init')
-                    if 'label' in params:
-                        label = params['label']
-                        params.pop('label')
-                    if 'seed' in params:
-                        seed = params['seed']
-                        params.pop('seed')
-                    runs_dict = dict()
-                    solver = jaxopt.ArmijoSGD(fun=self.problem.f, **params)
-                    for run in range(self.runs):
-                        if run % 10 == 0:
-                            logging.info(f'#{run} run...')
-                        sub = self.__run_solver(solver=solver, x_init=x_init, metrics=self.metrics, **params)    
-                        runs_dict[f'run_{run}'] = sub
-                    params['x_init'] = x_init
-                    params['label'] = label
-                    params['seed'] = seed
-                    data[self.problem][method] = {'hyperparams': params, 'runs': runs_dict}
+                        for run in range(self.runs):
+                            if run % 10 == 0:
+                                logging.info(f'#{run} run...')
+                            sub = self.__run_solver(solver=solver, x_init=x_init, metrics=self.metrics, **params)    
+                            runs_dict[f'run_{run}'] = sub
+                        params['x_init'] = x_init
+                        params['label'] = label
+                        params['seed'] = seed
+                        data[self.problem][method] = {'hyperparams': params, 'runs': runs_dict}
 
-                elif method.startswith('PolyakSGD'):
-                    logging.info('PolyakSGD (jaxopt built-in)')
-                    res.methods.append(method)
-                    x_init = None
-                    label = 'jaxopt.PolyakSGD'
-                    seed = str(self.problem.seed)
-                    if 'x_init' in params:
-                        x_init = params['x_init']
-                        params.pop('x_init')
-                    if 'label' in params:
-                        label = params['label']
-                        params.pop('label')
-                    if 'seed' in params:
-                        seed = params['seed']
-                        params.pop('seed')
-                    runs_dict = dict()
-                    solver = jaxopt.PolyakSGD(fun=self.problem.f, **params)
-                    for run in range(self.runs):
-                        if run % 10 == 0:
-                            logging.info(f'#{run} run...')
-                        sub = self.__run_solver(solver=solver, x_init=x_init, metrics=self.metrics, **params)    
-                        runs_dict[f'run_{run}'] = sub
-                    params['x_init'] = x_init
-                    params['label'] = label
-                    params['seed'] = seed
-                    data[self.problem][method] = {'hyperparams': params, 'runs': runs_dict}
+                    elif method.startswith('LBFGS'):
+                        logging.info('LBFGS (jaxopt built-in)')
+                        res.methods.append(method)
+                        x_init = None
+                        label = 'jaxopt.LBFGS'
+                        seed = str(self.problem.seed)
+                        if 'x_init' in params:
+                            x_init = params['x_init']
+                            params.pop('x_init')
+                        if 'label' in params:
+                            label = params['label']
+                            params.pop('label')
+                        if 'seed' in params:
+                            seed = params['seed']
+                            params.pop('seed')
+                        runs_dict = dict()
+                        for run in range(self.runs):
+                            if cls:
+                                new_linesearch = 'zoom'
+                                new_condition = 'stron-wolfe'
+                                ls = params['linesearch']
+                                params.pop('linesearch')
+                                cond = ''
+                                if 'condition' in params:
+                                    cond = params['condition']
+                                    params.pop('condition')
+                                if isinstance(ls, str) and self._check_linesearch(ls, method):
+                                    if ls in ['backtracking', 'zoom', 'hager-zhang']:
+                                        new_linesearch = ls
+                                    if cond in ['wolfe', 'strong-wolfe', 'armijo', 'goldstein']:
+                                        new_condition = cond
+                                    else:
+                                        err_msg = f'Unknown line search \'{ls}\', {cond}'
+                                        logging.critical(err_msg)
+                                        exit(1)
+                                else:
+                                    err_msg = f"For LBFGS parameter \'linesearch\' must be string from {['wolfe', 'strong-wolfe', 'armijo', 'goldstein']}(condition) or {['backtracking', 'zoom', 'hager-zhang']} (linesearch)"
+                                    logging.critical(err_msg)
+                                
+                                solver = jaxopt.LBFGS(fun=self.problem.f, linesearch=new_linesearch, condition=new_condition, **params)
+                            else:
+                                solver = jaxopt.LBFGS(fun=self.problem.f, **params)
+                            sub = self.__run_solver(solver=solver, x_init=x_init, metrics=self.metrics, **params)    
+                            runs_dict[f'run_{run}'] = sub
+                        params['x_init'] = x_init
+                        params['label'] = label
+                        params['seed'] = seed
+                        data[self.problem][method] = {'hyperparams': params, 'runs': runs_dict}
 
-                elif user_method is not None:
+                    elif method.startswith('ArmijoSGD'):
+                        logging.info('ArmijoSGD (jaxopt built-in)')
+                        res.methods.append(method)
+                        x_init = None
+                        label = 'jaxopt.ArmijoSGD'
+                        seed = str(self.problem.seed)
+                        if 'x_init' in params:
+                            x_init = params['x_init']
+                            params.pop('x_init')
+                        if 'label' in params:
+                            label = params['label']
+                            params.pop('label')
+                        if 'seed' in params:
+                            seed = params['seed']
+                            params.pop('seed')
+                        runs_dict = dict()
+                        solver = jaxopt.ArmijoSGD(fun=self.problem.f, **params)
+                        for run in range(self.runs):
+                            if run % 10 == 0:
+                                logging.info(f'#{run} run...')
+                            sub = self.__run_solver(solver=solver, x_init=x_init, metrics=self.metrics, **params)    
+                            runs_dict[f'run_{run}'] = sub
+                        params['x_init'] = x_init
+                        params['label'] = label
+                        params['seed'] = seed
+                        data[self.problem][method] = {'hyperparams': params, 'runs': runs_dict}
+
+                    elif method.startswith('PolyakSGD'):
+                        logging.info('PolyakSGD (jaxopt built-in)')
+                        res.methods.append(method)
+                        x_init = None
+                        label = 'jaxopt.PolyakSGD'
+                        seed = str(self.problem.seed)
+                        if 'x_init' in params:
+                            x_init = params['x_init']
+                            params.pop('x_init')
+                        if 'label' in params:
+                            label = params['label']
+                            params.pop('label')
+                        if 'seed' in params:
+                            seed = params['seed']
+                            params.pop('seed')
+                        runs_dict = dict()
+                        solver = jaxopt.PolyakSGD(fun=self.problem.f, **params)
+                        for run in range(self.runs):
+                            if run % 10 == 0:
+                                logging.info(f'#{run} run...')
+                            sub = self.__run_solver(solver=solver, x_init=x_init, metrics=self.metrics, **params)    
+                            runs_dict[f'run_{run}'] = sub
+                        params['x_init'] = x_init
+                        params['label'] = label
+                        params['seed'] = seed
+                        data[self.problem][method] = {'hyperparams': params, 'runs': runs_dict}
+
+                else:
+                    # params is custom_solver object now
+                    custom_solver = params
                     logging.info('Custom method')
                     res.methods.append(method)
-                    x_init = None
-                    if 'x_init' in params:
-                        x_init = jnp.array(params['x_init'])
-                        params.pop('x_init')
                     runs_dict = dict()
+                    x_init = custom_solver.x_init
                     for run in range(self.runs):
                         if run % 10 == 0:
                             logging.info(f'#{run} run...')
-                        sub = self.__run_solver(solver=user_method, metrics=self.metrics, x_init=x_init, **params)
+                        sub = self.__run_solver(solver=custom_solver, metrics=self.metrics, x_init=x_init)
                         runs_dict[f'run_{run}'] = sub
-                    params_to_write = user_method.params
+                    params_to_write = custom_solver.params
                     if 'x_init' not in params_to_write:
-                        params_to_write['x_init'] = user_method.x_init
-                    params_to_write['label'] = user_method.label
+                        params_to_write['x_init'] = x_init
+                    params_to_write['label'] = custom_solver.label
                     params_to_write['seed'] = self.problem.seed
                     data[self.problem][method] = {'hyperparams': params_to_write, 'runs': runs_dict}
+            """
+            Usage: smth like 
+            my_solver = MyGradientDescent(
+                x_init=x_init,
+                stepsize=1e-2,
+                problem=problem,
+                tol=1e-3,
+                maxiter=50,
+                label='MyGD'
+            )
+            benchmark = Benchmark(
+                runs=2,
+                problem=problem,
+                methods=[
+                    {
+                        'MY_GRADIENT_DESCENT': my_solver
+                    },
+                    {
+                        'GRADIENT_DESCENT_const_step': {
+                            'x_init' : x_init,
+                            'tol': 1e-3,
+                            'maxiter': 50,
+                            'stepsize' : 1e-1,
+                            'acceleration': False,
+                            'label': 'GD_const'
+                        }
+                    }
+                ],
+                metrics=[
+                    "nit",
+                    "history_x",
+                    "history_f",
+                    "history_df"
+                ],
+            )
+            result = benchmark.run(user_method=my_solver)
+            
+            """
 
         res.data = data
         return res
 
 
-"""
+
 def test_local():
-    from problems.quadratic_problem import QuadraticProblem
+    from quadratic_problem import QuadraticProblem
 
     n = 2
     x_init = jnp.array([1.0, 1.0])
@@ -473,4 +512,3 @@ def test_local():
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.INFO)
     test_local()
-"""

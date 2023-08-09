@@ -49,6 +49,13 @@ def _main():
     )
     result = benchmark.run()
     result.save('test_custom_metric_results.json')
+    result.plot(
+        metrics_to_plot= ['l1-norm'],
+        dir_path='plots',
+        fname_append='qp_real',
+        show=True,
+        log=True
+    )
 
 
 if __name__ == "__main__":

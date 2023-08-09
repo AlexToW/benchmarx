@@ -4,7 +4,7 @@
       "hyperparams": {
         "tol": "1e-09",
         "maxiter": "500",
-        "stepsize": "<function test7.<locals>.<lambda> at 0x2af1b3740>",
+        "stepsize": "<function test7.<locals>.<lambda> at 0x2b9090720>",
         "acceleration": "False",
         "x_init": "[0.10299983]",
         "label": "GD_1/L(k+9)",

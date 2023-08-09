@@ -635,7 +635,7 @@
       "hyperparams": {
         "tol": "1e-09",
         "maxiter": "100",
-        "stepsize": "<function test1.<locals>.<lambda> at 0x29f732f20>",
+        "stepsize": "<function test1.<locals>.<lambda> at 0x2972b1da0>",
         "acceleration": "False",
         "x_init": "[0. 0. 0. 0. 0. 0. 0.]",
         "label": "GD_1/(k+9)",

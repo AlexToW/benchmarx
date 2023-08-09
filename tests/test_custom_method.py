@@ -64,7 +64,7 @@ def _main():
 
     key = jax.random.PRNGKey(110500)
     x_init = jax.random.uniform(key, minval=0, maxval=1, shape=(d,))
-    nit = 100
+    nit = 500
 
     md_solver = MirrorDescent(
         x_init=x_init,

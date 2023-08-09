@@ -40,12 +40,6 @@ class Benchmark:
     ) -> None:
         self.runs = runs
         self.problem = problem
-        #methods_names = list()
-        #for item in methods:
-        #    for name, params in item.items():
-        #        methods_names.append(name)
-        #if not _methods.check_method(methods_names):
-        #    exit(1)
         self.methods = methods
         self.available_built_in_methods = _methods.available_built_in_methods
         if not _metrics.check_metric(metrics):

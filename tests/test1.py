@@ -72,6 +72,8 @@ def test1():
     result = benchmark.run()
     result.plot(
         metrics_to_plot= ['fs', 'xs_norm', 'f_gap', 'x_gap', 'grads_norm'],
+        # здесь происходит следующее: объект result сначала сохраняется в json файл,
+        # а уже из него Plotter строит что надо.
         data_path='test_1_data.json',
         dir_path='plots',
         fname_append='test1'

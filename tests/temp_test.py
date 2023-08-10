@@ -11,7 +11,7 @@ import time
 
 sys.path.insert(1, os.path.abspath(os.path.join(os.path.dirname("benchmarx"), "..")))
 
-from benchmarx import Benchmark, QuadraticProblem, Rastrigin, Rosenbrock, QuadraticProblemRealData, CustomOptimizer
+from benchmarx import Benchmark, QuadraticProblem, Rastrigin, Rosenbrock, QuadraticProblemRealData, CustomOptimizer, Plotter
 from benchmarx.src.custom_optimizer import State
 
 from typing import Any
@@ -76,7 +76,7 @@ def _main():
     )
 
     benchmark = Benchmark(
-        runs=1,
+        runs=2,
         problem=problem,
         methods=[{
             "MirrorDescent": md_solver
@@ -101,13 +101,18 @@ def _main():
 
     result = benchmark.run()
     result.save('custom_method_data.json')
-    result.plot(
-        metrics_to_plot= ['grads_norm'],
-        dir_path='plots',
-        fname_append='qp_real',
-        show=True,
-        log=True
+
+    plotter = Plotter(
+        # metrics= ['fs', 'xs_norm', 'f_gap', 'x_gap', 'grads_norm'],
+        metrics=["fs", "xs_norm", "f_gap"],
+        data_path="custom_method_data.json",
     )
+    #plotter.plot()
+    dfs_dict = plotter.json_to_dataframes(
+        df_metrics=["history_x", "history_df"]   # metrics from available metrics, not from metrics to plot
+    )
+    for problem, df in dfs_dict.items():
+        print(df.to_string())
 
 
 if __name__ == "__main__":

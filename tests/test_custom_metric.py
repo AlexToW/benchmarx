@@ -17,6 +17,7 @@ from benchmarx.src.metrics import CustomMetric
 
 def _main():
 
+    start = time.time()
     my_l1_metric = CustomMetric(
         func=lambda x: jnp.linalg.norm(x, ord=1),
         label="l1-norm",
@@ -49,14 +50,22 @@ def _main():
         ]
     )
     result = benchmark.run()
+    print(f"benchmarking: {time.time() - start} sec")
+
+    start = time.time()
     result.save('test_custom_metric_results.json')
+    print(f"saving: {time.time() - start} sec")
+
+    start = time.time()
     result.plot(
         metrics_to_plot= ['l1-norm'],
+        data_path="test_custom_metric_results.json",
         dir_path='plots',
         fname_append='qp_real',
         show=True,
         log=True
     )
+    print(f"plotting: {time.time() - start} sec")
 
 
 if __name__ == "__main__":

@@ -13,7 +13,7 @@ sys.path.insert(1, os.path.abspath(os.path.join(os.path.dirname("benchmarx"), ".
 
 from benchmarx import Benchmark, QuadraticProblem, Rastrigin, Rosenbrock, QuadraticProblemRealData, CustomOptimizer, Plotter
 from benchmarx.src.custom_optimizer import State
-
+from benchmarx.src.metrics import CustomMetric
 from typing import Any
 
 
@@ -95,6 +95,7 @@ def _main():
         metrics=[
             "nit",
             "history_x",
+            "history_f",
             "history_df"
         ],
     )
@@ -108,8 +109,12 @@ def _main():
         data_path="custom_method_data.json",
     )
     #plotter.plot()
+    l1_norm = CustomMetric(
+        func=lambda x: float(jnp.linalg.norm(x, ord=1)),
+        label="l1-norm"
+    )
     dfs_dict = plotter.json_to_dataframes(
-        df_metrics=["history_x", "history_df"]   # metrics from available metrics, not from metrics to plot
+        df_metrics=["Solution norm", "Distance to the optimum", "Primal gap", l1_norm]   # metrics from dataframe_metrics
     )
     for problem, df in dfs_dict.items():
         print(df.to_string())

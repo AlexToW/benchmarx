@@ -764,9 +764,10 @@ class Plotter:
             method_df = dataframe[dataframe["Method"] == method]
             marker = dict(symbol=markers[i_method])
             for option in dropdown_options:
+                #print(method_df["Iteration"], method_df[option["value"]])
                 trace = go.Scatter(
                     x=method_df["Iteration"],
-                    y=method_df[option["value"]],
+                    y=method_df[option['value']+"_mean"],
                     mode="lines+markers",
                     marker=marker,
                     hovertext=f"{method} - {option['label']}",
@@ -836,8 +837,9 @@ class Plotter:
         )
         for _, df in dfs.items():
             metrics_str = [metric for metric in metrics if isinstance(metric, str)]
-            metrics_str = [metric.label for metric in metrics if isinstance(metric, _metrics.CustomMetric)]
+            metrics_str += [metric.label for metric in metrics if isinstance(metric, _metrics.CustomMetric)]
             dropdown_options = [ {"label": metric, "value": metric} for metric in metrics_str]
+            #print(f"dropdown_options: {dropdown_options}")
             figure = self.plotly_figure(dataframe=df, dropdown_options=dropdown_options)
             figure.show(config=plotly_config)
 

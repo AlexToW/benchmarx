@@ -1,12 +1,13 @@
 # https://habr.com/ru/articles/502958/
 
 # =======================
-import plotly
-import plotly.graph_objs as go
-import plotly.express as px
-from plotly.subplots import make_subplots
 
 import pandas as pd
+import plotly.express as px
+import plotly.io as pio
+
+pio.templates.default = "plotly_white"
+import plotly.graph_objects as go
 
 # =======================
 import matplotlib.pyplot as plt
@@ -21,9 +22,8 @@ from typing import List, Dict
 
 # from problems.quadratic_problem import QuadraticProblem
 
-
+from benchmarx.src.defaults import default_plotly_config
 import benchmarx.src.metrics as _metrics
-
 
 
 class Plotter:
@@ -32,7 +32,10 @@ class Plotter:
     dir_path: str  # path to directory to save plots
 
     def __init__(
-        self, metrics: List[str | _metrics.CustomMetric], data_path: str, dir_path: str = "."
+        self,
+        metrics: List[str | _metrics.CustomMetric],
+        data_path: str,
+        dir_path: str = ".",
     ) -> None:
         self.default_metrics = [metric for metric in metrics if isinstance(metric, str)]
         self.custom_metrics = [
@@ -67,7 +70,7 @@ class Plotter:
         '0.01'
         'MyGD'
         """
-        
+
         if isinstance(val, float) or isinstance(val, jnp.ndarray):
             return val
 
@@ -600,12 +603,15 @@ class Plotter:
                     log=log,
                 )
 
-    def json_to_dataframes(self, df_metrics: List[str]) -> Dict[str, pd.DataFrame]:
+    def json_to_dataframes(
+        self, df_metrics: List[str | _metrics.CustomMetric]
+    ) -> Dict[str, pd.DataFrame]:
         """
         Extract data from JSON and create rows.
         Create DataFrame form rows.
         Returns dictionary {problem: problem's DataFrame}.
-        df_metrics -- metrics to put in columns
+        df_metrics -- metrics to put in columns, subset of
+        metrics.dataframe_metrics or your CustomMetric object
         """
         result_dict = {}
         problem_rows = {}
@@ -633,54 +639,215 @@ class Plotter:
                 if "hyperparams" in method_data and "runs" in method_data:
                     hyperparams = method_data["hyperparams"]
                     runs = method_data["runs"]
-                    for run, run_data in runs.items():
-                        run_num = int(run[4:])
-                        for iteration in range(int(run_data["nit"])):
-                            row = {
-                                "Problem": problem,
-                                "Method": method_data["hyperparams"]["label"],
-                                "Hyperparameters": hyperparams,
-                                "Iteration": iteration,
-                            }
-                            if x_opt is not None:
-                                row["Optimal solution"] = x_opt
-                            if f_opt is not None:
-                                row["Optimal function value"] = f_opt
+                    nit = int(runs["run_0"]["nit"])
 
+                    for iteration in range(nit):
+                        row = {
+                            "Problem": problem,
+                            "Method": method_data["hyperparams"]["label"],
+                            "Hyperparameters": hyperparams,
+                            "Iteration": iteration,
+                        }
+                        if x_opt is not None:
+                            row["Optimal solution"] = x_opt
+                        if f_opt is not None:
+                            row["Optimal function value"] = f_opt
+
+                        to_means_stds = {}
+                        for run, run_data in runs.items():
+                            run_num = int(run[4:])
                             for df_metric in df_metrics:
-                                print(f"run_data.keys(): {run_data.keys()}")
-                                if df_metric in run_data.keys():
-                                    row[df_metric + "_" + str(run_num)] = run_data[df_metric][iteration]
-                            
-                            rows.append(row)
+                                # here df_metric in dataframe_metrics or CustomMetric obj
+                                # print(f"run_data.keys(): {run_data.keys()}")
+                                metric_key_for_df = df_metric
+
+                                metric_key_for_run = df_metric
+                                custom_df_metric_flag = False
+                                if isinstance(df_metric, str):
+                                    if df_metric not in _metrics.dataframe_metrics:
+                                        logging.warning(
+                                            f"Unknown DataFrame metric '{df_metric}'"
+                                        )
+                                        continue
+                                    if (
+                                        df_metric
+                                        in _metrics.df_metric_to_aval_metric.keys()
+                                    ):
+                                        metric_key_for_run = (
+                                            _metrics.aval_metric_to_df_metric[df_metric]
+                                        )
+                                elif isinstance(df_metric, _metrics.CustomMetric):
+                                    metric_key_for_run = df_metric.label
+                                    metric_key_for_df = df_metric.label
+                                    custom_df_metric_flag = True
+                                else:
+                                    logging.warning(
+                                        f"Unknown DataFrame metric '{df_metric}'"
+                                    )
+                                    continue
+
+                                val = None
+                                if metric_key_for_run in run_data.keys():
+                                    val = run_data[metric_key_for_run][iteration]
+                                elif custom_df_metric_flag:
+                                    val = df_metric.func(
+                                        run_data["history_x"][iteration]
+                                    )
+                                elif metric_key_for_df == "Solution norm":
+                                    val = float(
+                                        jnp.linalg.norm(
+                                            run_data["history_x"][iteration]
+                                        )
+                                    )
+                                elif (
+                                    metric_key_for_df == "Distance to the optimum"
+                                    and x_opt is not None
+                                ):
+                                    val = float(
+                                        jnp.linalg.norm(
+                                            run_data["history_x"][iteration] - x_opt
+                                        )
+                                    )
+                                elif (
+                                    metric_key_for_df == "Primal gap"
+                                    and f_opt is not None
+                                ):
+                                    val = abs(run_data["history_f"][iteration] - f_opt)
+                                elif metric_key_for_df == "Gradient norm":
+                                    val = float(
+                                        jnp.linalg.norm(
+                                            run_data["history_df"][iteration]
+                                        )
+                                    )
+
+                                row[metric_key_for_df + "_" + str(run_num)] = val
+                                if metric_key_for_df in to_means_stds.keys():
+                                    to_means_stds[metric_key_for_df].append(val)
+                                else:
+                                    to_means_stds[metric_key_for_df] = [val]
+
+                        for metric, val1 in to_means_stds.items():
+                            row[metric + "_mean"] = jnp.mean(jnp.array(val1), axis=0)
+                            row[metric + "_std"] = jnp.std(jnp.array(val1), axis=0)
+
+                        rows.append(row)
             problem_rows[problem] = rows
 
         for problem, rows in problem_rows.items():
             result_dict[problem] = pd.DataFrame(rows)
-        
+
         return result_dict
 
-    def plotly_figure(self, dataframe, dropdown_options, metrics):
-        """
-        
-        """
-        pass
+    def plotly_figure(
+        self, dataframe: pd.DataFrame, dropdown_options: List[Dict[str, str]]
+    ) -> go.Figure:
+        """ """
+        markers = [
+            "circle",
+            "square",
+            "diamond",
+            "cross",
+            "x",
+            "triangle-up",
+            "triangle-down",
+            "triangle-left",
+            "triangle-right",
+            "triangle-ne",
+            "triangle-se",
+            "triangle-sw",
+            "triangle-nw",
+        ]
+        fig = go.Figure()
 
-    def plot_plotly(self, plotly_config=None):
-        """
-        
-        """
-        df = self.json_to_dataframe()
-        figure = self.plotly_figure(
-            dataframe=df,
-            dropdown_options=[],
-            metrics=[]
+        # Add traces for each method and each dropdown option
+        for i_method, method in enumerate(dataframe["Method"].unique()):
+            method_df = dataframe[dataframe["Method"] == method]
+            marker = dict(symbol=markers[i_method])
+            for option in dropdown_options:
+                trace = go.Scatter(
+                    x=method_df["Iteration"],
+                    y=method_df[option["value"]],
+                    mode="lines+markers",
+                    marker=marker,
+                    hovertext=f"{method} - {option['label']}",
+                    name=f"{method}",
+                    visible=False
+                    if option["value"] != "Primal gap"
+                    else True,  # Show only one trace initially
+                )
+                fig.add_trace(trace)
+        # Update layout
+        fig.update_layout(
+            updatemenus=[
+                {
+                    "buttons": [
+                        {
+                            "method": "update",
+                            "label": option["label"],
+                            "args": [
+                                {
+                                    "visible": [
+                                        option["value"] in trace.hovertext
+                                        for trace in fig.data
+                                    ]
+                                }
+                            ],
+                            "args2": [
+                                {"yaxis": {"title": option["label"], "type": "log"}}
+                            ],
+                        }
+                        for option in dropdown_options
+                    ],
+                    "direction": "down",
+                    "showactive": True,
+                    "x": -0.14,
+                    "xanchor": "left",
+                    "y": 1.2,
+                    "yanchor": "top",
+                }
+            ],
+            xaxis={"title": "Iteration"},
+            yaxis={"title": "", "type": "log"},
+            title=dataframe.T[0]["Problem"],  # Set your problem title here
         )
-        figure.show(config=plotly_config)
-        pass
 
+        fig.update_layout(
+            dragmode="pan",
+            title={
+                "x": 0.5,
+                "xanchor": "center",
+            },
+        )
 
+        return fig
 
+    def plot_plotly(
+        self,
+        metrics: List[str | _metrics.CustomMetric],
+        plotly_config=default_plotly_config,
+        write_html: bool = False,
+        path_to_write: str = "",
+        include_plotlyjs: str = "cdn",
+        full_html: bool = False,
+    ) -> None:
+        """ """
+        dfs = self.json_to_dataframes(
+            df_metrics=metrics
+        )
+        for _, df in dfs.items():
+            metrics_str = [metric for metric in metrics if isinstance(metric, str)]
+            metrics_str = [metric.label for metric in metrics if isinstance(metric, _metrics.CustomMetric)]
+            dropdown_options = [ {"label": metric, "value": metric} for metric in metrics_str]
+            figure = self.plotly_figure(dataframe=df, dropdown_options=dropdown_options)
+            figure.show(config=plotly_config)
+
+            if write_html:
+                figure.write_html(
+                    path_to_write,
+                    config=plotly_config,
+                    include_plotlyjs="cdn",
+                    full_html=False,
+                )
 
 
 def test_local():
@@ -689,9 +856,9 @@ def test_local():
         metrics=["fs", "xs_norm", "f_gap"],
         data_path="custom_method_data.json",
     )
-    #plotter.plot()
-    #data = plotter._sparse_data()
-    #print(data.keys())
+    # plotter.plot()
+    # data = plotter._sparse_data()
+    # print(data.keys())
 
 
 if __name__ == "__main__":

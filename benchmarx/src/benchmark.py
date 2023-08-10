@@ -507,44 +507,6 @@ class Benchmark:
                         "hyperparams": params_to_write,
                         "runs": runs_dict,
                     }
-            """
-            Usage: smth like 
-            my_solver = MyGradientDescent(
-                x_init=x_init,
-                stepsize=1e-2,
-                problem=problem,
-                tol=1e-3,
-                maxiter=50,
-                label='MyGD'
-            )
-            benchmark = Benchmark(
-                runs=2,
-                problem=problem,
-                methods=[
-                    {
-                        'MY_GRADIENT_DESCENT': my_solver
-                    },
-                    {
-                        'GRADIENT_DESCENT_const_step': {
-                            'x_init' : x_init,
-                            'tol': 1e-3,
-                            'maxiter': 50,
-                            'stepsize' : 1e-1,
-                            'acceleration': False,
-                            'label': 'GD_const'
-                        }
-                    }
-                ],
-                metrics=[
-                    "nit",
-                    "history_x",
-                    "history_f",
-                    "history_df"
-                ],
-            )
-            result = benchmark.run(user_method=my_solver)
-            
-            """
 
         res.data = data
         return res

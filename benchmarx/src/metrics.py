@@ -13,6 +13,28 @@ available_metrics = [
     "time"
 ]
 
+aval_metric_to_df_metric = {
+    "history_x" : "x",
+    "history_f" : "Function value",
+    "history_df" : "Gradient"
+}
+
+df_metric_to_aval_metric = {
+    "x" : "history_x",
+    "Function value" : "history_f",
+    "Gradient" : "history_df"
+}
+
+dataframe_metrics = [
+    "x",
+    "Solution norm",
+    "Distance to the optimum",
+    "Optimal solution",
+    "Function value",
+    "Primal gap",
+    "Gradient",
+    "Gradient norm"
+]
 
 available_metrics_to_plot = [
     'fs',

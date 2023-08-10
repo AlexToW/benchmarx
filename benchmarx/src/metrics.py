@@ -1,5 +1,5 @@
 import logging
-from typing import List
+from typing import List, Callable
 
 available_metrics = [
     "history_x",
@@ -52,3 +52,21 @@ def check_metric(metric: List[str]):
             logging.critical(f'Unsupported metric \'{item}\'. Available metrics: {available_metrics}')
             return False
     return True
+
+
+class CustomMetric:
+    """
+    CustomMetric class allows to compute your own metric to plot.
+    It is assumed that the metric is calculated using points from 
+    the method trajectory, i.e. function func is real-valued and 
+    takes as an argument a point from R^d, where d is dimensionality 
+    of the problem. 
+    The step parameter is responsible for the frequency of func 
+    calculation. 
+    self.func will be calculated at each iteration whose number 
+    is a multiple of self.step.
+    """
+    def __init__(self, func: Callable, label: str, step: int = 1) -> None:
+        self.func = func
+        self.label = label
+        self.step = step

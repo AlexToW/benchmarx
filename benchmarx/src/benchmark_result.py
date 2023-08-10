@@ -8,6 +8,7 @@ import jax
 import jax.numpy as jnp
 
 from benchmarx.src import metrics as _metrics
+from benchmarx.src.metrics import CustomMetric
 from benchmarx.src.problem import Problem
 from benchmarx.src.plotter import Plotter 
 import benchmarx.src.quadratic_problem as quadratic_problem
@@ -18,7 +19,7 @@ from typing import List, Dict
 class BenchmarkResult:
     #methods: list[Method] = None  # methods that have been benchmarked
     methods: List[str] = None
-    metrics: List[str] = None  # an array of fields that will be assigned to each of the methods from self.methods
+    metrics: List[str | CustomMetric] = None  # an array of fields that will be assigned to each of the methods from self.methods
     problem: Problem = None  # the Problem on which the benchmarking was performed
     #data: dict[Problem, dict[Method, dict[str, list[any]]]] = None
     data: Dict[Problem, Dict[str, Dict[str, List[any]]]] = None
@@ -26,14 +27,16 @@ class BenchmarkResult:
         self,
         problem: Problem,
         methods: List[str],
-        metrics: List[str],
+        metrics: List[str | CustomMetric],
         data: Dict[Problem, Dict[str, Dict[str, List[any]]]] = None,
     ) -> None:
         self.problem = problem
         self.methods = methods
-        if not _metrics.check_metric(metrics):
+        self.custom_metrics = [metric for metric in metrics if isinstance(metric, CustomMetric)]
+        self.default_metrics = [metric for metric in metrics if isinstance(metric, str)]
+        if not _metrics.check_metric(self.default_metrics):
             exit(1)
-        self.metrics = metrics
+        self.metrics = self.default_metrics + [metric.label for metric in self.custom_metrics]
         self.data = data
 
     def save(self, path: str) -> None:
@@ -95,7 +98,7 @@ class BenchmarkResult:
         if len(data_path) > 0:
             res_file_path = data_path
         self.save(res_file_path)
-        plotter_ = Plotter(metrics=metrics_to_plot, data_path=res_file_path, dir_path=dir_path)
+        plotter_ = Plotter(metrics=metrics_to_plot + self.custom_metrics, data_path=res_file_path, dir_path=dir_path)
         plotter_.plot(save=save, show=show, log=log, fname_append=fname_append)
 
 

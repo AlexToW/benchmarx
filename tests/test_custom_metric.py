@@ -19,7 +19,8 @@ def _main():
 
     my_l1_metric = CustomMetric(
         func=lambda x: jnp.linalg.norm(x, ord=1),
-        label="l1-norm"
+        label="l1-norm",
+        step=2
     )
 
     n = 2

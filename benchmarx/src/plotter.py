@@ -22,6 +22,7 @@ from typing import List, Dict
 
 
 import benchmarx.src.metrics as _metrics
+from benchmarx.src.metrics import CustomMetric
 
 
 class Plotter:
@@ -29,10 +30,12 @@ class Plotter:
     data_path: str          # path to a json file with the necessary data
     dir_path: str          # path to directory to save plots 
     
-    def __init__(self, metrics: List[str], data_path: str, dir_path: str = '.') -> None:
-        if not _metrics.check_plot_metric(metrics):
-            exit(1)
-        self.metrics = metrics
+    def __init__(self, metrics: List[str | CustomMetric], data_path: str, dir_path: str = '.') -> None:
+        self.default_metrics = [metric for metric in metrics if isinstance(metric, str)]
+        self.custom_metrics = [metric for metric in metrics if isinstance(metric, CustomMetric)]
+        #if not _metrics.check_plot_metric(self.default_metrics):
+        #    exit(1)
+        self.metrics = self.default_metrics + [metric.label for metric in self.custom_metrics]
         self.data_path = data_path
         self.dir_path = dir_path
 

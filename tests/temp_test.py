@@ -113,15 +113,15 @@ def _main():
         func=lambda x: float(jnp.linalg.norm(x, ord=1)),
         label="l1-norm"
     )
-    #dfs_dict = plotter.json_to_dataframes(
-    #    df_metrics=["Solution norm", "Distance to the optimum", "Primal gap", l1_norm]   # metrics from dataframe_metrics
-    #)
-    #for problem, df in dfs_dict.items():
-    #    print(df.to_string())
-
-    plotter.plot_plotly(
-        metrics=["Solution norm", "Distance to the optimum", "Primal gap"]
+    dfs_dict = plotter.json_to_dataframes(
+        df_metrics=["Primal gap", l1_norm]   # metrics from dataframe_metrics
     )
+    for problem, df in dfs_dict.items():
+        print(df.to_string())
+
+    #plotter.plot_plotly(
+    #    metrics=["Solution norm", "Distance to the optimum", "Primal gap"]
+    #)
 
 
 if __name__ == "__main__":

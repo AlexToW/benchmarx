@@ -31,7 +31,7 @@ Refer to the examples provided in the repository for details on how to use this 
 
 - Your own custom method [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1DCNgjb3_9ITQy93dZg0fUbV2BRB_MuLL?usp=sharing)
 
-- Your own custom metric and interactive chart [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://drive.google.com/file/d/1Zz2RaEJOYIB2y8U8J_JnALXFISecGwoI/view?usp=sharing)
+- Your own custom metric and interactive chart [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/12I_T09gELjZlslOP8nRV4v2ght2R6vDX?usp=sharing)
 
 - Stochastic Gradient Descent on Quadratic Problem [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1bD7eM9NNZqEvMjlTl6OKvN_vcmtHSMAd?usp=sharing)
 

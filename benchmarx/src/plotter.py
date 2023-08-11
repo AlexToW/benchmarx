@@ -3,6 +3,7 @@
 # =======================
 
 import pandas as pd
+import plotly
 import plotly.express as px
 import plotly.io as pio
 
@@ -634,8 +635,6 @@ class Plotter:
             rows = []
 
             for method, method_data in problem_data.items():
-                if isinstance(method_data, float):
-                    print(f"method_data: {method_data}")
                 if "hyperparams" in method_data and "runs" in method_data:
                     hyperparams = method_data["hyperparams"]
                     runs = method_data["runs"]
@@ -764,10 +763,16 @@ class Plotter:
             method_df = dataframe[dataframe["Method"] == method]
             marker = dict(symbol=markers[i_method])
             for option in dropdown_options:
-                #print(method_df["Iteration"], method_df[option["value"]])
-                trace = go.Scatter(
+                # print(method_df["Iteration"], method_df[option["value"]])
+                """
+                error_y = plotly.graph_objs.scatter.ErrorY(
+                    array=method_df[option["value"] + "_std"]
+                )
+                """
+                trace_mean = go.Scatter(
                     x=method_df["Iteration"],
-                    y=method_df[option['value']+"_mean"],
+                    y=method_df[option["value"] + "_mean"],
+                    #error_y=error_y,
                     mode="lines+markers",
                     marker=marker,
                     hovertext=f"{method} - {option['label']}",
@@ -776,7 +781,33 @@ class Plotter:
                     if option["value"] != "Primal gap"
                     else True,  # Show only one trace initially
                 )
-                fig.add_trace(trace)
+                fig.add_trace(trace_mean)
+
+                trace_minus_std = go.Scatter(
+                    name='mean - std',
+                    x=method_df['Iteration'],
+                    y=method_df[option["value"] + "_mean"] - method_df[option["value"] + "_std"],
+                    mode='lines',
+                    #marker=dict(color="#444"),
+                    line=dict(width=0),
+                    showlegend=False,
+                    hovertext=f"{method} - {option['label']}_lower"
+                )
+                fig.add_trace(trace_minus_std)
+
+                trace_plus_std = go.Scatter(
+                    name='mean + std',
+                    x=method_df['Iteration'],
+                    y=method_df[option["value"] + "_mean"] + method_df[option["value"] + "_std"],
+                    #marker=dict(color="#444"),
+                    line=dict(width=0),
+                    mode='lines',
+                    #fillcolor='rgba(68, 68, 68, 0.3)',
+                    fill='tonexty',
+                    showlegend=False,
+                    hovertext=f"{method} - {option['label']}_upper"
+                )
+                fig.add_trace(trace_plus_std)
         # Update layout
         fig.update_layout(
             updatemenus=[
@@ -832,14 +863,18 @@ class Plotter:
         full_html: bool = False,
     ) -> None:
         """ """
-        dfs = self.json_to_dataframes(
-            df_metrics=metrics
-        )
+        dfs = self.json_to_dataframes(df_metrics=metrics)
         for _, df in dfs.items():
             metrics_str = [metric for metric in metrics if isinstance(metric, str)]
-            metrics_str += [metric.label for metric in metrics if isinstance(metric, _metrics.CustomMetric)]
-            dropdown_options = [ {"label": metric, "value": metric} for metric in metrics_str]
-            #print(f"dropdown_options: {dropdown_options}")
+            metrics_str += [
+                metric.label
+                for metric in metrics
+                if isinstance(metric, _metrics.CustomMetric)
+            ]
+            dropdown_options = [
+                {"label": metric, "value": metric} for metric in metrics_str
+            ]
+            # print(f"dropdown_options: {dropdown_options}")
             figure = self.plotly_figure(dataframe=df, dropdown_options=dropdown_options)
             figure.show(config=plotly_config)
 

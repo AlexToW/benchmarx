@@ -756,12 +756,51 @@ class Plotter:
             "triangle-sw",
             "triangle-nw",
         ]
+        colors = [
+            '#1f77b4',  # muted blue
+            '#ff7f0e',  # safety orange
+            '#2ca02c',  # cooked asparagus green
+            '#d62728',  # brick red
+            '#9467bd',  # muted purple
+            '#8c564b',  # chestnut brown
+            '#e377c2',  # raspberry yogurt pink
+            '#7f7f7f',  # middle gray
+            '#bcbd22',  # curry yellow-green
+            '#17becf'   # blue-teal
+        ]
+        colors_rgba = [
+            'rgba(31, 119, 180,  1)',
+            'rgba(255, 127, 14,  1)',
+            'rgba(44, 160, 44,   1)',
+            'rgba(214, 39, 40,   1)',
+            'rgba(148, 103, 189, 1)',
+            'rgba(140, 86, 75,   1)',
+            'rgba(227, 119, 194, 1)',
+            'rgba(127, 127, 127, 1)',
+            'rgba(188, 189, 34,  1)',
+            'rgba(23, 190, 207,  1)'
+        ]
+        colors_rgba_faint = [
+            'rgba(31, 119, 180,  0.3)',
+            'rgba(255, 127, 14,  0.3)',
+            'rgba(44, 160, 44,   0.3)',
+            'rgba(214, 39, 40,   0.3)',
+            'rgba(148, 103, 189, 0.3)',
+            'rgba(140, 86, 75,   0.3)',
+            'rgba(227, 119, 194, 0.3)',
+            'rgba(127, 127, 127, 0.3)',
+            'rgba(188, 189, 34,  0.3)',
+            'rgba(23, 190, 207,  0.3)'
+        ]
         fig = go.Figure()
 
         # Add traces for each method and each dropdown option
         for i_method, method in enumerate(dataframe["Method"].unique()):
             method_df = dataframe[dataframe["Method"] == method]
-            marker = dict(symbol=markers[i_method])
+            marker = dict(symbol=markers[i_method % len(markers)],
+                          color=colors_rgba[i_method % len(colors_rgba)])
+            color = dict(color=colors[i_method % len(colors)])
+            fillcolor = colors_rgba_faint[i_method % len(colors_rgba_faint)]
             for option in dropdown_options:
                 trace_mean = go.Scatter(
                     x=method_df["Iteration"],
@@ -769,6 +808,7 @@ class Plotter:
                     #error_y=error_y,
                     mode="lines+markers",
                     marker=marker,
+                    #color=color,
                     hovertext=f"{method} - {option['label']}",
                     name=f"{method}",
                     visible=option["value"] == dropdown_options[0]["value"]
@@ -796,6 +836,7 @@ class Plotter:
                         line=dict(width=0),
                         mode='lines',
                         #fillcolor='rgba(68, 68, 68, 0.3)',
+                        fillcolor=fillcolor,
                         fill='tonexty',
                         showlegend=False,
                         hovertext=f"{method} - {option['label']}_lower",

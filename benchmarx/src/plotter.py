@@ -34,19 +34,14 @@ class Plotter:
 
     def __init__(
         self,
-        metrics: List[str | _metrics.CustomMetric],
-        data_path: str,
+        metrics: List[str | _metrics.CustomMetric] = [],
+        data_path: str = "",
         dir_path: str = ".",
     ) -> None:
         self.default_metrics = [metric for metric in metrics if isinstance(metric, str)]
-        self.custom_metrics = [
-            metric for metric in metrics if isinstance(metric, _metrics.CustomMetric)
-        ]
-        # if not _metrics.check_plot_metric(self.default_metrics):
-        #    exit(1)
-        self.metrics = self.default_metrics + [
-            metric.label for metric in self.custom_metrics
-        ]
+        self.custom_metrics = [metric for metric in metrics if isinstance(metric, _metrics.CustomMetric)]
+        
+        self.metrics = metrics
         self.data_path = data_path
         self.dir_path = dir_path
 
@@ -673,7 +668,7 @@ class Plotter:
                                         in _metrics.df_metric_to_aval_metric.keys()
                                     ):
                                         metric_key_for_run = (
-                                            _metrics.aval_metric_to_df_metric[df_metric]
+                                            _metrics.df_metric_to_aval_metric[df_metric]
                                         )
                                 elif isinstance(df_metric, _metrics.CustomMetric):
                                     metric_key_for_run = df_metric.label
@@ -805,10 +800,8 @@ class Plotter:
                 trace_mean = go.Scatter(
                     x=method_df["Iteration"],
                     y=method_df[option["value"] + "_mean"],
-                    #error_y=error_y,
                     mode="lines+markers",
                     marker=marker,
-                    #color=color,
                     hovertext=f"{method} - {option['label']}",
                     name=f"{method}",
                     visible=option["value"] == dropdown_options[0]["value"]
@@ -820,7 +813,6 @@ class Plotter:
                         x=method_df['Iteration'],
                         y=method_df[option["value"] + "_mean"] + method_df[option["value"] + "_std"],
                         mode='lines',
-                        #marker=dict(color="#444"),
                         line=dict(width=0),
                         showlegend=False,
                         hovertext=f"{method} - {option['label']}_upper",
@@ -832,10 +824,8 @@ class Plotter:
                         name='mean - std',
                         x=method_df['Iteration'],
                         y=method_df[option["value"] + "_mean"] - method_df[option["value"] + "_std"],
-                        #marker=dict(color="#444"),
                         line=dict(width=0),
                         mode='lines',
-                        #fillcolor='rgba(68, 68, 68, 0.3)',
                         fillcolor=fillcolor,
                         fill='tonexty',
                         showlegend=False,
@@ -909,7 +899,6 @@ class Plotter:
             dropdown_options = [
                 {"label": metric, "value": metric} for metric in metrics_str
             ]
-            # print(f"dropdown_options: {dropdown_options}")
             figure = self.plotly_figure(dataframe=df, dropdown_options=dropdown_options)
             figure.show(config=plotly_config)
 

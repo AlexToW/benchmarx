@@ -763,12 +763,6 @@ class Plotter:
             method_df = dataframe[dataframe["Method"] == method]
             marker = dict(symbol=markers[i_method])
             for option in dropdown_options:
-                # print(method_df["Iteration"], method_df[option["value"]])
-                """
-                error_y = plotly.graph_objs.scatter.ErrorY(
-                    array=method_df[option["value"] + "_std"]
-                )
-                """
                 trace_mean = go.Scatter(
                     x=method_df["Iteration"],
                     y=method_df[option["value"] + "_mean"],
@@ -777,37 +771,37 @@ class Plotter:
                     marker=marker,
                     hovertext=f"{method} - {option['label']}",
                     name=f"{method}",
-                    visible=False
-                    if option["value"] != "Primal gap"
-                    else True,  # Show only one trace initially
+                    visible=option["value"] == dropdown_options[0]["value"]
                 )
                 fig.add_trace(trace_mean)
+                if not all([val == 0 for val in method_df[option["value"] + "_std"]]):
+                    trace_plus_std = go.Scatter(
+                        name='mean + std',
+                        x=method_df['Iteration'],
+                        y=method_df[option["value"] + "_mean"] + method_df[option["value"] + "_std"],
+                        mode='lines',
+                        #marker=dict(color="#444"),
+                        line=dict(width=0),
+                        showlegend=False,
+                        hovertext=f"{method} - {option['label']}_upper",
+                        visible=option["value"] == dropdown_options[0]["value"]
+                    )
+                    fig.add_trace(trace_plus_std)
 
-                trace_minus_std = go.Scatter(
-                    name='mean - std',
-                    x=method_df['Iteration'],
-                    y=method_df[option["value"] + "_mean"] - method_df[option["value"] + "_std"],
-                    mode='lines',
-                    #marker=dict(color="#444"),
-                    line=dict(width=0),
-                    showlegend=False,
-                    hovertext=f"{method} - {option['label']}_lower"
-                )
-                fig.add_trace(trace_minus_std)
-
-                trace_plus_std = go.Scatter(
-                    name='mean + std',
-                    x=method_df['Iteration'],
-                    y=method_df[option["value"] + "_mean"] + method_df[option["value"] + "_std"],
-                    #marker=dict(color="#444"),
-                    line=dict(width=0),
-                    mode='lines',
-                    #fillcolor='rgba(68, 68, 68, 0.3)',
-                    fill='tonexty',
-                    showlegend=False,
-                    hovertext=f"{method} - {option['label']}_upper"
-                )
-                fig.add_trace(trace_plus_std)
+                    trace_minus_std = go.Scatter(
+                        name='mean - std',
+                        x=method_df['Iteration'],
+                        y=method_df[option["value"] + "_mean"] - method_df[option["value"] + "_std"],
+                        #marker=dict(color="#444"),
+                        line=dict(width=0),
+                        mode='lines',
+                        #fillcolor='rgba(68, 68, 68, 0.3)',
+                        fill='tonexty',
+                        showlegend=False,
+                        hovertext=f"{method} - {option['label']}_lower",
+                        visible=option["value"] == dropdown_options[0]["value"]
+                    )
+                    fig.add_trace(trace_minus_std)
         # Update layout
         fig.update_layout(
             updatemenus=[

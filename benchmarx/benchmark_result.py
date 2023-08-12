@@ -6,12 +6,12 @@ import uuid
 
 import jax
 import jax.numpy as jnp
+import pandas as pd
 
-from benchmarx.src import metrics as _metrics
-from benchmarx.src.metrics import CustomMetric
-from benchmarx.src.problem import Problem
-from benchmarx.src.plotter import Plotter 
-from benchmarx.src.quadratic_problem import QuadraticProblem
+from benchmarx.metrics import Metrics, CustomMetric
+from benchmarx.problem import Problem
+from benchmarx.plotter import Plotter 
+from benchmarx.quadratic_problem import QuadraticProblem
 
 from typing import List, Dict
 
@@ -233,26 +233,140 @@ class BenchmarkResult:
         with open(path, "w") as file:
             json.dump(data_str, file, indent=2)
 
-
-    def plot(self, 
-             metrics_to_plot = ['f', 'x_norm', 'f_gap', 'x_gap', 'grad_norm'], 
-             data_path = '', 
-             dir_path = '.',
-             save: bool = True,
-             show: bool = False,
-             log: bool = True,
-             fname_append: str = ''):
+    def get_dataframes(self, df_metrics: List[str | CustomMetric]) -> Dict[str, pd.DataFrame]:
         """
-        Plot metrics using matplotlib.pyplot. 
-        metrics_to_plot: List[str | CustomMetric], metrics to plot. String metrics must be from Metrics.available_metrics_to_plot
+        Extract data from JSON and create rows.
+        Create DataFrame form rows.
+        Returns dictionary {problem: problem's DataFrame}.
+        df_metrics -- metrics to put in columns, subset of
+        Metrics.metrics_to_plot or your CustomMetric objects
         """
-        res_file_path = str(uuid.uuid4())
-        if len(data_path) > 0:
-            res_file_path = data_path
-        self.save(res_file_path)
-        plotter_ = Plotter(metrics=metrics_to_plot + self.custom_metrics, data_path=res_file_path, dir_path=dir_path)
-        plotter_.plot(save=save, show=show, log=log, fname_append=fname_append)
+        result_dict = {}
+        problem_rows = {}
 
-    def __str__(self) -> str:
-        return ""
+        for problem, problem_data in self.data.items():
+            x_opt = None
+            f_opt = None
+            if "A" in problem_data:
+                problem_data.pop("A")
+            if "b" in problem_data:
+                problem_data.pop("b")
+
+            # after these manipulations either x_opt is not None, or it can no longer be counted
+            if "x_opt" in problem_data:
+                x_opt = self._convert(problem_data["x_opt"])
+                problem_data.pop("x_opt")
+            elif isinstance(self.problem, Problem) and hasattr(self.problem, "x_opt"):
+                x_opt = self.problem.x_opt
+
+            # after these manipulations either f_opt is not None, or it can no longer be counted
+            if "f_opt" in problem_data:
+                f_opt = self._convert(problem_data["f_opt"])
+                problem_data.pop("f_opt")
+            elif isinstance(self.problem, Problem):
+                if hasattr(self.problem, "f_opt"):
+                    f_opt = self.problem.f_opt
+                elif hasattr(self.problem, "x_opt"):
+                    f_opt = self.problem.f(self.problem.x_opt)
+
+            rows = []
+
+            for method, method_data in problem_data.items():
+                if "hyperparams" in method_data and "runs" in method_data:
+                    hyperparams = method_data["hyperparams"]
+                    runs = method_data["runs"]
+                    nit = int(runs["run_0"]["nit"])
+
+                    for iteration in range(nit):
+                        row = {
+                            "Problem": problem,
+                            "Method": method_data["hyperparams"]["label"],
+                            "Hyperparameters": hyperparams,
+                            "Iteration": iteration,
+                        }
+                        if x_opt is not None:
+                            row["x_opt"] = x_opt
+                        if f_opt is not None:
+                            row["f_opt"] = f_opt
+
+                        to_means_stds = {}
+                        for run, run_data in runs.items():
+                            run_num = int(run[4:])
+                            for df_metric in df_metrics:
+                                # here df_metric in dataframe_metrics or CustomMetric obj
+                                # print(f"run_data.keys(): {run_data.keys()}")
+                                df_metric_key = str(df_metric)  # string representation of metric (label)
+                                custom_df_metric_flag = isinstance(df_metric, CustomMetric)
+                                if isinstance(df_metric, str):
+                                    if df_metric not in Metrics.metrics_to_plot:
+                                        logging.warning(
+                                            f"Unknown metric '{df_metric}'. Use CustomMetric to specify your own metric."
+                                        )
+                                        continue
+
+                                val = None
+                                if df_metric_key in run_data.keys():
+                                    val = run_data[df_metric_key][iteration]
+                                elif custom_df_metric_flag:
+                                    val = df_metric.func(
+                                        run_data["x"][iteration]
+                                    )
+                                elif df_metric_key == "x_gap":
+                                    if x_opt is not None:
+                                        val = float(jnp.linalg.norm(run_data["x"][iteration] - x_opt))
+                                    else:
+                                        logging.warning(
+                                            msg=f"Cannot calculate x_gap because there is no information about x_opt. x_gap set to 1."
+                                        )
+                                        val = 1
+                                elif df_metric_key == "f_gap":
+                                    if f_opt is not None:
+                                        if "f" in run_data.keys():
+                                            val = jnp.abs(run_data["f"][iteration] - f_opt)
+                                        elif isinstance(self.problem, Problem):
+                                            val = jnp.abs(self.problem.f(run_data["x"][iteration]) - f_opt)
+                                        else:
+                                            logging.warning(
+                                                msg="Cannot calculate f_gap because there is impossible to compute f_opt. f_gap set to 1."
+                                            )
+                                            val = 1
+                                    else:
+                                        logging.warning(
+                                            msg="Cannot calculate f_gap because there is impossible to compute f_opt. f_gap set to 1."
+                                        )
+                                        val = 1
+                                elif df_metric_key == "grad_norm":
+                                    if "grad" in run_data.keys():
+                                        val = float(jnp.linalg.norm(run_data["grad"][iteration]))
+                                    elif isinstance(self.problem, Problem):
+                                        if hasattr(self.problem, "grad"):
+                                            val = float(jnp.linalg.norm(self.problem.grad(run_data["x"][iteration])))
+                                        else:
+                                            val = float(jnp.linalg.norm(jax.grad(self.problem.f)(run_data["x"][iteration])))
+                                    else:
+                                        logging.warning(
+                                            msg="Cannot calculate grad_norm because there is no information about grad. grad_norm set to 1."
+                                        )
+                                        val = 1
+                                elif df_metric_key == "x_norm":
+                                    val = float(jnp.linalg.norm(run_data["x"][iteration]))
+
+
+                                row[df_metric_key + "_" + str(run_num)] = val
+                                if df_metric_key in to_means_stds.keys():
+                                    to_means_stds[df_metric_key].append(val)
+                                else:
+                                    to_means_stds[df_metric_key] = [val]
+
+                        for metric, val1 in to_means_stds.items():
+                            row[metric + "_mean"] = jnp.mean(jnp.array(val1), axis=0)
+                            row[metric + "_std"] = jnp.std(jnp.array(val1), axis=0)
+
+                        rows.append(row)
+            problem_rows[problem] = rows
+
+        for problem, rows in problem_rows.items():
+            result_dict[problem] = pd.DataFrame(rows)
+
+        return result_dict
 

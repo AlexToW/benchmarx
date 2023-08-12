@@ -1,0 +1,1 @@
+from benchmarx.benchmark import Benchmark

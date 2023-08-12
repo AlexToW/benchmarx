@@ -1,25 +1,28 @@
-# Benchmarx
+![](./files/long_logo.svg)
+# Benchmarx: Benchmarking Optimization Methods with Jax
 
-Benchmarx provides a convenient interface for benchmarking optimization 
-methods. This package provides a simple implementation of benchmarking 
-functions for optimization tasks and provides the ability to use standard 
-methods from jaxopt as well as to implement your own method. The results 
-of the experiments are saved in all details in a json file, which can be 
-used to visualize the data in graphs. Refer to the examples for details.
+Benchmarx is a Python library that enables you to benchmark various optimization methods in a reproducible manner using the Jax library. It provides a flexible framework for comparing the performance of different optimization algorithms on a wide range of optimization problems.
+
+## Features
+
+- Benchmarx allows you to easily benchmark optimization algorithms provided by the [Jaxopt](https://github.com/google/jaxopt) library as well as custom algorithms.
+- Reproducibility is ensured by providing a comprehensive set of parameters to control the benchmarking process, including RNG states.
+- Comes with a collection of standard optimization problems, making it simple to evaluate algorithms on diverse tasks.
+- Supports tracking and visualization of key metrics such as function values, gradient norms(if possible) and solution trajectories.
+- Generate customizable plots and reports to aid in analyzing and presenting benchmark results with [plotly](https://github.com/plotly/plotly.py) library.
+- All the data from the experiments could be saved in the json or pandas format for the later analysis.
 
 ## Installation
 
-To install the latest release of Benchmarx, use the following command:
+You can install Benchmarx using pip:
 
 ```bash
-$ pip install benchmarx
+pip install benchmarx
 ```
 
-Alternatively, it can be installed from sources with the following command:
+## Usage
 
-```bash
-$ python setup.py install
-```
+To be done
 
 ## Examples
 
@@ -38,6 +41,11 @@ Refer to the examples provided in the repository for details on how to use this 
 - Quadratic Problem based on real data [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1k3-ul8o9_wdsNko51t0-UNpHOwTemJ6o?usp=sharing)
 
 - Neural Network training [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1W2vP5NRCnv6aFVgSm9pzmWZ7l0i3SCmm?usp=sharing)
+
+## Documentation
+
+Check out the full documentation at [benchmarx.fmin.xyz](https://benchmarx.fmin.xyz).
+
 
 ## Contribution
 

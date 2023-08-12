@@ -6,10 +6,10 @@ import logging
 import sys
 import os
 
-from benchmarx.src.problem import Problem
+from benchmarx.problem import Problem
 
-#sys.path.insert(1, os.path.abspath(os.path.join(os.path.dirname("src"), "..")))
-from benchmarx.src.defaults import *
+#sys.path.insert(1, os.path.abspath(os.path.join(os.path.dirname("benchmarx"), "..")))
+from benchmarx.defaults import *
 
 class LogLossL2Reg(Problem):
     """

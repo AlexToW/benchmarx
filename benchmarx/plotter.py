@@ -23,8 +23,8 @@ from typing import List, Dict
 
 # from problems.quadratic_problem import QuadraticProblem
 
-from benchmarx.src.defaults import default_plotly_config
-import benchmarx.src.metrics as _metrics
+from benchmarx.defaults import default_plotly_config
+import benchmarx.metrics as _metrics
 
 
 class Plotter:

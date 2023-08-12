@@ -19,9 +19,9 @@ import sys
 import os
 from typing import List, Dict
 
-from benchmarx.src.plotter import Plotter
+from benchmarx.plotter import Plotter
 
-#sys.path.insert(1, os.path.abspath(os.path.join(os.path.dirname("src"), "..")))
+#sys.path.insert(1, os.path.abspath(os.path.join(os.path.dirname("benchmarx"), "..")))
 
 ### Model
 class CNN(nn.Module):

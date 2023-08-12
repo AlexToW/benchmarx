@@ -7,11 +7,11 @@ import uuid
 import jax
 import jax.numpy as jnp
 
-from benchmarx.src import metrics as _metrics
-from benchmarx.src.metrics import CustomMetric
-from benchmarx.src.problem import Problem
-from benchmarx.src.plotter import Plotter 
-import benchmarx.src.quadratic_problem as quadratic_problem
+from benchmarx import metrics as _metrics
+from benchmarx.metrics import CustomMetric
+from benchmarx.problem import Problem
+from benchmarx.plotter import Plotter 
+import benchmarx.quadratic_problem as quadratic_problem
 
 from typing import List, Dict
 

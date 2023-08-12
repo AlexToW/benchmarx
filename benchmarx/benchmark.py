@@ -6,15 +6,15 @@ import time
 import logging
 from typing import List, Dict
 
-from benchmarx.src.problem import Problem
-import benchmarx.src.methods as _methods
-import benchmarx.src.metrics as _metrics
-from benchmarx.src.benchmark_result import BenchmarkResult
-from benchmarx.src import custom_optimizer
-from benchmarx.src.custom_optimizer import CustomOptimizer
+from benchmarx.problem import Problem
+import benchmarx.methods as _methods
+import benchmarx.metrics as _metrics
+from benchmarx.benchmark_result import BenchmarkResult
+from benchmarx import custom_optimizer
+from benchmarx.custom_optimizer import CustomOptimizer
 
-from benchmarx.src.ProxGD_custom_linesearch import GradientDescentCLS
-from benchmarx.src.plotter import Plotter
+from benchmarx.ProxGD_custom_linesearch import GradientDescentCLS
+from benchmarx.plotter import Plotter
 
 
 class Benchmark:

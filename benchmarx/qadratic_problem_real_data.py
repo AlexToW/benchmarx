@@ -5,8 +5,8 @@ import os
 import jax.numpy as jnp
 import pandas as pd
 
-from benchmarx.src.problem import Problem
-from benchmarx.src.defaults import default_seed
+from benchmarx.problem import Problem
+from benchmarx.defaults import default_seed
 
 
 class QuadraticProblemRealData(Problem):

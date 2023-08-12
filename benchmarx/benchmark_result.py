@@ -10,8 +10,9 @@ import pandas as pd
 
 from benchmarx.metrics import Metrics, CustomMetric
 from benchmarx.problem import Problem
-from benchmarx.plotter import Plotter 
+#from benchmarx.plotter import Plotter 
 from benchmarx.quadratic_problem import QuadraticProblem
+from benchmarx.defaults import default_plotly_config
 
 from typing import List, Dict
 
@@ -275,7 +276,7 @@ class BenchmarkResult:
                 if "hyperparams" in method_data and "runs" in method_data:
                     hyperparams = method_data["hyperparams"]
                     runs = method_data["runs"]
-                    nit = int(runs["run_0"]["nit"])
+                    nit = int(runs["run_0"]["nit"][0])
 
                     for iteration in range(nit):
                         row = {
@@ -370,3 +371,24 @@ class BenchmarkResult:
 
         return result_dict
 
+    def plot(
+        self,
+        metrics: List[str | CustomMetric],
+        plotly_config=default_plotly_config,
+        write_html: bool = False,
+        path_to_write: str = "",
+        include_plotlyjs: str = "cdn",
+        full_html: bool = False
+    ) -> None:
+        from benchmarx.plotter import Plotter 
+        plotter = Plotter(
+            benchmark_result=self
+        )
+        plotter.plot(
+            metrics=metrics,
+            plotly_config=plotly_config,
+            write_html=write_html,
+            path_to_write=path_to_write,
+            include_plotlyjs=include_plotlyjs,
+            full_html=full_html
+        )

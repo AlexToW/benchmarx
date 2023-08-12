@@ -11,10 +11,16 @@ import time
 
 sys.path.insert(1, os.path.abspath(os.path.join(os.path.dirname("benchmarx"), "..")))
 
-from benchmarx import Benchmark, QuadraticProblem, Rastrigin, Rosenbrock, QuadraticProblemRealData, CustomOptimizer, Plotter
-from benchmarx.src.custom_optimizer import State
-from benchmarx.src.metrics import CustomMetric
+#from benchmarx import Benchmark, QuadraticProblem, Rastrigin, Rosenbrock, QuadraticProblemRealData, CustomOptimizer, Plotter
+from benchmarx.custom_optimizer import State
+from benchmarx.metrics import CustomMetric
 from typing import Any
+
+from benchmarx.benchmark_result import BenchmarkResult
+from benchmarx.benchmark import Benchmark
+from benchmarx.custom_optimizer import CustomOptimizer
+from benchmarx.quadratic_problem import QuadraticProblem
+from benchmarx.plotter import Plotter
 
 
 class MirrorDescent(CustomOptimizer):
@@ -153,17 +159,18 @@ def _main():
         }
         ],
         metrics=[
-            "nit",
-            "history_x",
-            "history_f",
-            "history_df",
+            "f",
+            "grad",
             gap
         ],
     )
 
     result = benchmark.run()
-    result.save('custom_method_data.json')
+    result.plot(
+        metrics=["x_gap", "f", "f_gap", "grad_norm", "x_norm", gap]
+    )
 
+    """
     plotter = Plotter(
         #metrics= ['fs', 'xs_norm', 'f_gap', 'x_gap', 'grads_norm'],
         #metrics=["fs", "xs_norm", "f_gap"],
@@ -182,6 +189,7 @@ def _main():
         write_html=True,
         path_to_write="MD_vs_GD_simplex.html"
     )
+    """
 
 
 if __name__ == "__main__":

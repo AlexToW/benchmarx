@@ -6,15 +6,14 @@ import time
 import logging
 from typing import List, Dict
 
-from benchmarx.src.problem import Problem
-import benchmarx.src.methods as _methods
-import benchmarx.src.metrics as _metrics
-from benchmarx.src.benchmark_result import BenchmarkResult
-from benchmarx.src import custom_optimizer
-from benchmarx.src.custom_optimizer import CustomOptimizer
+from benchmarx.problem import Problem
+import benchmarx.methods as _methods
+import benchmarx.metrics as _metrics
+from benchmarx.benchmark_result import BenchmarkResult
+from benchmarx.custom_optimizer import CustomOptimizer
 
-from benchmarx.src.ProxGD_custom_linesearch import GradientDescentCLS
-from benchmarx.src.plotter import Plotter
+from benchmarx.ProxGD_custom_linesearch import GradientDescentCLS
+from benchmarx.plotter import Plotter
 
 
 class Benchmark:
@@ -89,7 +88,7 @@ class Benchmark:
         as the "method" solver works (solver like jaxopt.GradientDescent obj
         or or an heir to the CustomOptimizer class)
         """
-        custom_method_flag = issubclass(type(solver), custom_optimizer.CustomOptimizer)
+        custom_method_flag = issubclass(type(solver), CustomOptimizer)
         # cls = hasattr(solver, 'linesearch_custom')
         result = dict()
         state = solver.init_state(x_init, *args, **kwargs)
@@ -112,7 +111,7 @@ class Benchmark:
 
         tol = 0
 
-        if not custom_optimizer and "tol" in kwargs:
+        if not custom_method_flag and "tol" in kwargs:
             tol = kwargs["tol"]
 
         start_time = time.time()

@@ -60,12 +60,6 @@ class Metrics:
     
     @staticmethod
     def check_metrics_to_track(metrics_to_check: List[str]):
-        for comp_metric in Metrics.compalsory_metrics_to_track:
-            if comp_metric not in metrics_to_check:
-                logging.critical(
-                    msg=f"Compalsory metric '{comp_metric}' is not contained in metrics to track."
-                )
-                exit(1)
         for metric in metrics_to_check:
             if metric not in Metrics.metrics_to_track:
                 logging.warning(
@@ -110,6 +104,9 @@ class CustomMetric:
         self.func = func
         self.label = label
         self.step = step
+    
+    def __str__(self) -> str:
+        return self.label
 
 
 # metrics that will be tracked as the method 

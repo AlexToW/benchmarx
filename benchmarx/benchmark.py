@@ -6,15 +6,15 @@ import time
 import logging
 from typing import List, Dict
 
-from benchmarx.problem import Problem
-import benchmarx.methods as _methods
-import benchmarx.metrics as _metrics
-from benchmarx.benchmark_result import BenchmarkResult
-from benchmarx import custom_optimizer
-from benchmarx.custom_optimizer import CustomOptimizer
+from benchmarx.src.problem import Problem
+import benchmarx.src.methods as _methods
+import benchmarx.src.metrics as _metrics
+from benchmarx.src.benchmark_result import BenchmarkResult
+from benchmarx.src import custom_optimizer
+from benchmarx.src.custom_optimizer import CustomOptimizer
 
-from benchmarx.ProxGD_custom_linesearch import GradientDescentCLS
-from benchmarx.plotter import Plotter
+from benchmarx.src.ProxGD_custom_linesearch import GradientDescentCLS
+from benchmarx.src.plotter import Plotter
 
 
 class Benchmark:
@@ -29,25 +29,37 @@ class Benchmark:
     available_built_in_methods: List[str] = None  # method's keywords.
     # If you want to call a method from the jaxopt,
     # the name of the method must begin with one of these keywords.
-    default_metrics: List[str]  # subset of available_built_in_methods
-    custom_metrics: List[_metrics.CustomMetric]  # your own custom metrics
+    str_metrics_to_track: List[str]  # subset of _metrics.Metrics.metrics_to_track
+    custom_metrics_to_track: List[_metrics.CustomMetric]  # your own custom metrics
     aval_linesearch_str = ["armijo", "goldstein", "strong-wolfe", "wolfe"]
 
     def __init__(
         self,
         problem: Problem,
         methods: List[Dict[str, Dict[str, any]]],
-        metrics: List[str | _metrics.CustomMetric],
+        metrics: List[str | _metrics.CustomMetric], # metrics to track
         runs: int = 1,
     ) -> None:
+        """
+        problem: Problem class object (or inheritor)
+        methods: List[Dict[str, Dict[str, any]]] or List[Dict[str, CustomOptimizer]], methods for benchmarking
+        metrics: List[str | _metrics.CustomMetric], metrics to track (see metrics.Metrics)
+        runc: int, number of runs
+        """
         self.runs = runs
         self.problem = problem
         self.methods = methods
         self.available_built_in_methods = _methods.available_built_in_methods
-        self.default_metrics = [metric for metric in metrics if isinstance(metric, str)]
-        if not _metrics.check_metric(self.default_metrics):
-            exit(1)
-        self.custom_metrics = [
+        
+        self.str_metrics_to_track = [metric for metric in metrics if isinstance(metric, str)]
+        _metrics.Metrics.check_metrics_to_track(
+            metrics_to_check=self.str_metrics_to_track
+        )
+
+        self.str_metrics_to_track = _metrics.Metrics.fix_metrics_to_track(
+            metrics_to_fix=self.str_metrics_to_track
+        )
+        self.custom_metrics_to_track = [
             metric for metric in metrics if isinstance(metric, _metrics.CustomMetric)
         ]
 
@@ -80,7 +92,6 @@ class Benchmark:
         custom_method_flag = issubclass(type(solver), custom_optimizer.CustomOptimizer)
         # cls = hasattr(solver, 'linesearch_custom')
         result = dict()
-        start_time = time.time()
         state = solver.init_state(x_init, *args, **kwargs)
         sol = x_init
         if custom_method_flag and sol is None:
@@ -99,12 +110,13 @@ class Benchmark:
         def stop_criterion(err, tol):
             return err < tol
 
-        tol = 1e-3
+        tol = 0
 
         if not custom_optimizer and "tol" in kwargs:
             tol = kwargs["tol"]
 
-        # print(tol)
+        start_time = time.time()
+
         for i in range(solver.maxiter):
             if i > 0:
                 if not custom_method_flag and stop_criterion(state.error, tol):
@@ -113,44 +125,56 @@ class Benchmark:
                     break
             if isinstance(sol, float):
                 sol = jnp.array([sol])
-            if "history_x" in self.default_metrics:
-                if not "history_x" in result:
-                    result["history_x"] = [sol]
-                else:
-                    result["history_x"].append(sol)
-            if "history_f" in self.default_metrics:
-                if not "history_f" in result:
-                    result["history_f"] = [self.problem.f(sol)]
-                else:
-                    result["history_f"].append(self.problem.f(sol))
-            if "history_df" in self.default_metrics:
-                if not "history_df" in result:
-                    result["history_df"] = [jax.grad(self.problem.f)(sol)]
-                else:
-                    result["history_df"].append(jax.grad(self.problem.f)(sol))
-            if "nit" in self.default_metrics:
-                if not "nit" in result:
-                    result["nit"] = [1]
-                else:
-                    result["nit"][0] += 1
-            if "nfev" in self.default_metrics:
-                # IDK
-                pass
-            if "njev" in self.default_metrics:
-                # IDK
-                pass
-            if "nhev" in self.default_metrics:
-                # IDK
-                pass
-            if "errors" in self.default_metrics:
-                if not "errors" in result:
-                    result["errors"] = [state.error]
-                else:
-                    result["errors"].append(state.error)
-            x_prev = sol
+            
+            # "x" is always in self.str_metrics_to_track
+            if not "x" in result:
+                result["x"] = [sol]
+            else:
+                result["x"].append(sol)
 
+            # objective function values
+            if "f" in self.str_metrics_to_track:
+                if not "f" in result:
+                    result["f"] = [self.problem.f(sol)]
+                else:
+                    result["f"].append(self.problem.f(sol))
+
+            # gradient of the objective function
+            if "grad" in self.str_metrics_to_track:
+                grad_val = self.problem.grad(sol) if hasattr(self.problem, "grad") else jax.grad(self.problem.f)(sol)
+                if not "grad" in result:
+                    result["grad"] = [grad_val]
+                else:
+                    result["grad"].append(grad_val)
+            
+            # "nit" is always in self.str_metrics_to_track
+            if not "nit" in result:
+                result["nit"] = [1]
+            else:
+                result["nit"][0] += 1
+
+            if "nfev" in self.str_metrics_to_track:
+                # in progress
+                pass
+
+            if "njev" in self.str_metrics_to_track:
+                # in progress
+                pass
+
+            if "nhev" in self.str_metrics_to_track:
+                # in progress
+                pass
+            
+            if "time" in self.str_metrics_to_track:
+                if not "time" in result:
+                    result["time"] = [time.time() - start_time]
+                else:
+                    result["time"].append(time.time() - start_time)
+
+            x_prev = sol
+            
             # custom metrics moment
-            for custom_metric in self.custom_metrics:
+            for custom_metric in self.custom_metrics_to_track:
                 if i % custom_metric.step == 0:
                     if not custom_metric.label in result:
                         result[custom_metric.label] = [custom_metric.func(sol)]
@@ -161,15 +185,13 @@ class Benchmark:
                 sol, state = update(sol, state)
             else:
                 sol, state = jitted_update(sol, state)
-        duration = time.time() - start_time
-        if "time" in self.default_metrics:
-            result["time"] = [duration]
 
         return result
 
     def run(self) -> BenchmarkResult:
         res = BenchmarkResult(
-            problem=self.problem, methods=list(), metrics=self.default_metrics + self.custom_metrics
+            problem=self.problem, 
+            methods=list()
         )
         data = dict()
         data[self.problem] = dict()
@@ -510,69 +532,3 @@ class Benchmark:
 
         res.data = data
         return res
-
-
-def test_local():
-    from quadratic_problem import QuadraticProblem
-
-    n = 2
-    x_init = jnp.array([1.0, 1.0])
-    problem = QuadraticProblem(n=n)
-    benchamrk = Benchmark(
-        problem=problem,
-        methods=[
-            {
-                "GRADIENT_DESCENT_const_step": {
-                    "x_init": x_init,
-                    "tol": 1e-2,
-                    "maxiter": 11,
-                    "stepsize": 1e-2,
-                }
-            },
-            {
-                "GRADIENT_DESCENT_adaptive_step": {
-                    "x_init": x_init,
-                    "tol": 1e-2,
-                    "maxiter": 11,
-                    "stepsize": lambda iter_num: 1 / (iter_num + 20),
-                }
-            },
-            {
-                "GRADIENT_DESCENT_strong_wolfe": {
-                    "x_init": x_init,
-                    "tol": 1e-2,
-                    "maxiter": 11,
-                    "linesearch": "backtracking",
-                    "condition": "strong-wolfe",
-                }
-            },
-            {
-                "BFGS_strong_wolfe": {
-                    "x_init": x_init,
-                    "tol": 1e-2,
-                    "maxiter": 11,
-                    "condition": "strong-wolfe",
-                }
-            },
-            {
-                "BFGS_armijo": {
-                    "x_init": x_init,
-                    "tol": 1e-2,
-                    "maxiter": 11,
-                    "condition": "armijo",
-                }
-            },
-        ],
-        metrics=[
-            "nit",
-            "history_x",
-            "history_f",
-        ],
-    )
-    result = benchamrk.run()
-    result.save("GD_quadratic.json")
-
-
-if __name__ == "__main__":
-    logging.getLogger().setLevel(logging.INFO)
-    test_local()

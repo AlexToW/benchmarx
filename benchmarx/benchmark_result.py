@@ -293,8 +293,6 @@ class BenchmarkResult:
                         for run, run_data in runs.items():
                             run_num = int(run[4:])
                             for df_metric in df_metrics:
-                                # here df_metric in dataframe_metrics or CustomMetric obj
-                                # print(f"run_data.keys(): {run_data.keys()}")
                                 df_metric_key = str(df_metric)  # string representation of metric (label)
                                 custom_df_metric_flag = isinstance(df_metric, CustomMetric)
                                 if isinstance(df_metric, str):
@@ -350,6 +348,16 @@ class BenchmarkResult:
                                         val = 1
                                 elif df_metric_key == "x_norm":
                                     val = float(jnp.linalg.norm(run_data["x"][iteration]))
+                                elif df_metric_key == "f":
+                                    if isinstance(self.problem, Problem):
+                                        val = self.problem.f(run_data["x"][iteration])
+                                    else:
+                                        logging.warning(
+                                            msg="Cannot calculate 'f' metric because there is no information about problem. 'f' value set to 1."
+                                        )
+                                        val = 1
+
+
 
 
                                 row[df_metric_key + "_" + str(run_num)] = val

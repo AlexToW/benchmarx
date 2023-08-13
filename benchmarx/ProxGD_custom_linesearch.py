@@ -12,7 +12,7 @@ import sys
 
 # make higher-level lib package visible to scripts
 #sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname("benchmarx"), '..')))
-from jaxopt.proximal_gradient import ProximalGradient, ProxGradState
+from jaxopt._src.proximal_gradient import ProximalGradient, ProxGradState
 from jaxopt import base
 
 

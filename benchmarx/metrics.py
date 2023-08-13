@@ -30,12 +30,12 @@ class Metrics:
     [4]	grad_norm	||grad||
     [5]	x_norm		||x||
 
-    Note: if one of the compalsory metrics to track is not 
+    Note: if one of the compulsory metrics to track is not 
     contained in the list of metrics to track (it is set when 
-    the benchmark object is created) then this compalsory metric 
+    the benchmark object is created) then this compulsory metric 
     will be added to metrics to track.
     """
-    compalsory_metrics_to_track = [
+    compulsory_metrics_to_track = [
         "x",
         "nit"
     ]
@@ -60,12 +60,6 @@ class Metrics:
     
     @staticmethod
     def check_metrics_to_track(metrics_to_check: List[str]):
-        for comp_metric in Metrics.compalsory_metrics_to_track:
-            if comp_metric not in metrics_to_check:
-                logging.critical(
-                    msg=f"Compalsory metric '{comp_metric}' is not contained in metrics to track."
-                )
-                exit(1)
         for metric in metrics_to_check:
             if metric not in Metrics.metrics_to_track:
                 logging.warning(
@@ -75,10 +69,10 @@ class Metrics:
     @staticmethod
     def fix_metrics_to_track(metrics_to_fix: List[str]) -> List[str]:
         """
-        Add compalsory metrics and remove metrics that are 
+        Add compulsory metrics and remove metrics that are 
         not contained in self.metrics_to_track.
         """
-        fixed_metrics = Metrics.compalsory_metrics_to_track
+        fixed_metrics = Metrics.compulsory_metrics_to_track
         for metric in metrics_to_fix:
             if metric in Metrics.metrics_to_track:
                 fixed_metrics.append(metric)
@@ -110,6 +104,9 @@ class CustomMetric:
         self.func = func
         self.label = label
         self.step = step
+    
+    def __str__(self) -> str:
+        return self.label
 
 
 # metrics that will be tracked as the method 

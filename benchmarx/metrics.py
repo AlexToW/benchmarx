@@ -46,7 +46,8 @@ class Metrics:
         "nit",
         "nfev",
         "njev",
-        "nhev"
+        "nhev",
+        "time"
     ]
     metrics_to_plot = [
         "x_gap",
@@ -107,83 +108,3 @@ class CustomMetric:
     
     def __str__(self) -> str:
         return self.label
-
-
-# metrics that will be tracked as the method 
-# runs and saved to a json file
-available_metrics = [
-    "history_x",
-    "history_f",
-    "history_df",
-    "nit",
-    "nfev",
-    "njev",
-    "nhev",
-    "errors",
-    "time"
-]
-
-
-# metrics to plot 
-
-aval_metric_to_df_metric = {
-    "history_x" : "x",
-    "history_f" : "Function value",
-    "history_df" : "Gradient"
-}
-
-df_metric_to_aval_metric = {
-    "x" : "history_x",
-    "Function value" : "history_f",
-    "Gradient" : "history_df"
-}
-
-dataframe_metrics = [
-    "x",
-    "Solution norm",
-    "Distance to the optimum",
-    "Optimal solution",
-    "Function value",
-    "Primal gap",
-    "Gradient",
-    "Gradient norm"
-]
-
-available_metrics_to_plot = [
-    'fs',
-    'xs_norm',
-    'f_gap',       # TODO: rename to f_gap
-    'x_gap',       # TODO: rename to x_gap
-    'grads_norm'
-]
-
-nn_aval_metrics = [
-    'test_acc',
-    'train_acc',
-    'test_loss',
-    'train_loss'
-]
-
-
-def check_plot_metric(metric: str):
-    return metric in available_metrics_to_plot or metric in nn_aval_metrics
-
-
-def check_plot_metric(metric: List[str]):
-    for item in metric:
-        if item not in available_metrics_to_plot and item not in nn_aval_metrics:
-            logging.critical(f'Unsupported metric \'{item}\' to plot. Available metrics to plot: {available_metrics_to_plot}, {nn_aval_metrics}')
-            return False
-    return True
-
-
-def check_metric(metric: str):
-    return metric in available_metrics
-
-
-def check_metric(metric: List[str]):
-    for item in metric:
-        if item not in available_metrics:
-            logging.critical(f'Unsupported metric \'{item}\'. Available metrics: {available_metrics}')
-            return False
-    return True

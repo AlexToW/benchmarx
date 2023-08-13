@@ -12,7 +12,7 @@ import logging
 import jax.numpy as jnp
 from typing import List, Dict
 
-from benchmarx.defaults import default_plotly_config
+from benchmarx.defaults import default_plotly_config, default_log_threshold
 from benchmarx.metrics import Metrics, CustomMetric
 
 from benchmarx.benchmark_result import BenchmarkResult
@@ -105,7 +105,7 @@ class Plotter:
                     trace_minus_std = go.Scatter(
                         name="mean - std",
                         x=method_df["Iteration"],
-                        y=[max(val, 1e-10) for val in method_df[option["value"] + "_mean"]- method_df[option["value"] + "_std"]],
+                        y=[max(val, default_log_threshold) for val in method_df[option["value"] + "_mean"]- method_df[option["value"] + "_std"]],
                         line=dict(width=0),
                         mode="lines",
                         fillcolor=fillcolor,

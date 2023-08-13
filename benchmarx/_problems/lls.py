@@ -79,6 +79,8 @@ class LinearLeastSquares(Problem):
         else:
             raise ValueError(f"Unknown problem type: {problem_type}")
         
+        self.f_opt = self.f(self.x_opt)
+        
     def _generate_data(self, m, n):
         """
         Generates random data for the linear system.

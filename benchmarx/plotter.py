@@ -5,7 +5,6 @@ import plotly.express as px
 import plotly.io as pio
 pio.templates.default = "plotly_white"
 import plotly.graph_objects as go
-import matplotlib.pyplot as plt
 import os
 import pathlib
 import json

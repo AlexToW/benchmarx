@@ -8,6 +8,7 @@ import traceback
 import logging
 import functools
 import time
+import random
 
 sys.path.insert(1, os.path.abspath(os.path.join(os.path.dirname("benchmarx"), "..")))
 
@@ -54,11 +55,11 @@ class MirrorDescent(CustomOptimizer):
         return False
 
 
-class GD_proj(CustomOptimizer):
+class CSGD_proj(CustomOptimizer):
     """
-    GD on standart simplex
+    CSGD on standart simplex
     """
-    def __init__(self, x_init, stepsize, problem, tol=0, maxiter=1000, label = 'GD_proj'):
+    def __init__(self, x_init, stepsize, problem, tol=0, maxiter=1000, label = 'CSGD_proj'):
         params = {
             'x_init': x_init,
             'tol': tol,
@@ -100,7 +101,10 @@ class GD_proj(CustomOptimizer):
 
     def update(self, sol, state: State) -> tuple([jnp.array, State]):
         Ax = self.problem.A @ sol
-        sol = self.proj(sol - self.stepsize * Ax)
+        g = jnp.zeros(Ax.shape[0])
+        ind = random.randint(a=0, b=g.shape[0]-1)
+        g = g.at[ind].set(Ax[ind])
+        sol = self.proj(sol - self.stepsize * g)
         state.iter_num += 1
         return sol, state
     
@@ -135,13 +139,13 @@ def _main():
         label='MD'
     )
 
-    gd_solver = GD_proj(
+    csgd_solver = CSGD_proj(
         x_init=x_init,
         stepsize=1/L,
         problem=problem,
         tol=0,
         maxiter=nit,
-        label='GD_proj'
+        label='CSGD_proj'
     )
 
     gap = CustomMetric(
@@ -149,13 +153,13 @@ def _main():
         label="main_gap"
     )
     benchmark = Benchmark(
-        runs=1,
+        runs=3,
         problem=problem,
         methods=[{
             "MirrorDescent": md_solver
         },
         {
-            'GradientDescent_proj': gd_solver 
+            'GradientDescent_proj': csgd_solver 
         }
         ],
         metrics=[

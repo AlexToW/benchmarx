@@ -1,8 +1,8 @@
-
 import pandas as pd
 import plotly
 import plotly.express as px
 import plotly.io as pio
+
 pio.templates.default = "plotly_white"
 import plotly.graph_objects as go
 import matplotlib.pyplot as plt
@@ -25,7 +25,6 @@ class Plotter:
     def __init__(self, benchmark_result) -> None:
         self.benchmark_result = benchmark_result
 
-
     def plotly_figure(
         self, dataframe: pd.DataFrame, dropdown_options: List[Dict[str, str]]
     ) -> go.Figure:
@@ -46,36 +45,38 @@ class Plotter:
             "triangle-nw",
         ]
         colors_rgba = [
-            'rgba(31, 119, 180,  1)',
-            'rgba(255, 127, 14,  1)',
-            'rgba(44, 160, 44,   1)',
-            'rgba(214, 39, 40,   1)',
-            'rgba(148, 103, 189, 1)',
-            'rgba(140, 86, 75,   1)',
-            'rgba(227, 119, 194, 1)',
-            'rgba(127, 127, 127, 1)',
-            'rgba(188, 189, 34,  1)',
-            'rgba(23, 190, 207,  1)'
+            "rgba(31, 119, 180,  1)",
+            "rgba(255, 127, 14,  1)",
+            "rgba(44, 160, 44,   1)",
+            "rgba(214, 39, 40,   1)",
+            "rgba(148, 103, 189, 1)",
+            "rgba(140, 86, 75,   1)",
+            "rgba(227, 119, 194, 1)",
+            "rgba(127, 127, 127, 1)",
+            "rgba(188, 189, 34,  1)",
+            "rgba(23, 190, 207,  1)",
         ]
         colors_rgba_faint = [
-            'rgba(31, 119, 180,  0.3)',
-            'rgba(255, 127, 14,  0.3)',
-            'rgba(44, 160, 44,   0.3)',
-            'rgba(214, 39, 40,   0.3)',
-            'rgba(148, 103, 189, 0.3)',
-            'rgba(140, 86, 75,   0.3)',
-            'rgba(227, 119, 194, 0.3)',
-            'rgba(127, 127, 127, 0.3)',
-            'rgba(188, 189, 34,  0.3)',
-            'rgba(23, 190, 207,  0.3)'
+            "rgba(31, 119, 180,  0.3)",
+            "rgba(255, 127, 14,  0.3)",
+            "rgba(44, 160, 44,   0.3)",
+            "rgba(214, 39, 40,   0.3)",
+            "rgba(148, 103, 189, 0.3)",
+            "rgba(140, 86, 75,   0.3)",
+            "rgba(227, 119, 194, 0.3)",
+            "rgba(127, 127, 127, 0.3)",
+            "rgba(188, 189, 34,  0.3)",
+            "rgba(23, 190, 207,  0.3)",
         ]
         fig = go.Figure()
 
         # Add traces for each method and each dropdown option
         for i_method, method in enumerate(dataframe["Method"].unique()):
             method_df = dataframe[dataframe["Method"] == method]
-            marker = dict(symbol=markers[i_method % len(markers)],
-                          color=colors_rgba[i_method % len(colors_rgba)])
+            marker = dict(
+                symbol=markers[i_method % len(markers)],
+                color=colors_rgba[i_method % len(colors_rgba)],
+            )
             fillcolor = colors_rgba_faint[i_method % len(colors_rgba_faint)]
             for option in dropdown_options:
                 trace_mean = go.Scatter(
@@ -85,33 +86,35 @@ class Plotter:
                     marker=marker,
                     hovertext=f"{method} - {option['label']}",
                     name=f"{method}",
-                    visible=option["value"] == dropdown_options[0]["value"]
+                    visible=option["value"] == dropdown_options[0]["value"],
                 )
                 fig.add_trace(trace_mean)
                 if not all([val == 0 for val in method_df[option["value"] + "_std"]]):
                     trace_plus_std = go.Scatter(
-                        name='mean + std',
-                        x=method_df['Iteration'],
-                        y=method_df[option["value"] + "_mean"] + method_df[option["value"] + "_std"],
-                        mode='lines',
+                        name="mean + std",
+                        x=method_df["Iteration"],
+                        y=method_df[option["value"] + "_mean"]
+                        + method_df[option["value"] + "_std"],
+                        mode="lines",
                         line=dict(width=0),
                         showlegend=False,
                         hovertext=f"{method} - {option['label']}_upper",
-                        visible=option["value"] == dropdown_options[0]["value"]
+                        visible=option["value"] == dropdown_options[0]["value"],
                     )
                     fig.add_trace(trace_plus_std)
 
                     trace_minus_std = go.Scatter(
-                        name='mean - std',
-                        x=method_df['Iteration'],
-                        y=method_df[option["value"] + "_mean"] - method_df[option["value"] + "_std"],
+                        name="mean - std",
+                        x=method_df["Iteration"],
+                        y=method_df[option["value"] + "_mean"]
+                        - method_df[option["value"] + "_std"],
                         line=dict(width=0),
-                        mode='lines',
+                        mode="lines",
                         fillcolor=fillcolor,
-                        fill='tonexty',
+                        fill="tonexty",
                         showlegend=False,
                         hovertext=f"{method} - {option['label']}_lower",
-                        visible=option["value"] == dropdown_options[0]["value"]
+                        visible=option["value"] == dropdown_options[0]["value"],
                     )
                     fig.add_trace(trace_minus_std)
         # Update layout
@@ -125,7 +128,15 @@ class Plotter:
                             "args": [
                                 {
                                     "visible": [
-                                        option["value"] in trace.hovertext
+                                        trace.hovertext.endswith(
+                                            f" - {option['value']}"
+                                        )
+                                        or trace.hovertext.endswith(
+                                            f" - {option['value']}_upper"
+                                        )
+                                        or trace.hovertext.endswith(
+                                            f" - {option['value']}_lower"
+                                        )
                                         for trace in fig.data
                                     ]
                                 }
@@ -166,10 +177,10 @@ class Plotter:
         write_html: bool = False,
         path_to_write: str = "",
         include_plotlyjs: str = "cdn",
-        full_html: bool = False
+        full_html: bool = False,
     ) -> None:
-        """ 
-        metrics, List[str | CustomMetric], string metrics are 
+        """
+        metrics, List[str | CustomMetric], string metrics are
             from Metrics.metrics_to_plot: metrics to plot.
         plotly_config:          plotly config.
         write_html, bool:       if True, html file will be write according to path_to_write.
@@ -178,15 +189,15 @@ class Plotter:
         """
         dfs = self.benchmark_result.get_dataframes(df_metrics=metrics)
         for _, df in dfs.items():
+            # df.to_csv("df_to_plot.csv")
             metrics_str = [metric for metric in metrics if isinstance(metric, str)]
             metrics_str += [
-                metric.label
-                for metric in metrics
-                if isinstance(metric, CustomMetric)
+                metric.label for metric in metrics if isinstance(metric, CustomMetric)
             ]
             dropdown_options = [
                 {"label": metric, "value": metric} for metric in metrics_str
             ]
+            # print(f"dwopdown_options: {dropdown_options}")
             figure = self.plotly_figure(dataframe=df, dropdown_options=dropdown_options)
             figure.show(config=plotly_config)
 
@@ -197,18 +208,3 @@ class Plotter:
                     include_plotlyjs="cdn",
                     full_html=False,
                 )
-
-
-def test_local():
-    plotter = Plotter(
-        # metrics= ['fs', 'xs_norm', 'f_gap', 'x_gap', 'grads_norm'],
-        metrics=["fs", "xs_norm", "f_gap"],
-        data_path="custom_method_data.json",
-    )
-    # plotter.plot()
-    # data = plotter._sparse_data()
-    # print(data.keys())
-
-
-if __name__ == "__main__":
-    test_local()

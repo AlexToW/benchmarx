@@ -1,5 +1,4 @@
 import json
-import wandb
 import logging
 import sys
 import uuid

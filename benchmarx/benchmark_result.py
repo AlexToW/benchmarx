@@ -13,7 +13,7 @@ from benchmarx.problem import Problem
 from benchmarx.quadratic_problem import QuadraticProblem
 from benchmarx.defaults import default_plotly_config
 
-from typing import List, Dict
+from typing import List, Dict, Tuple
 
 
 class BenchmarkResult:
@@ -233,16 +233,21 @@ class BenchmarkResult:
         with open(path, "w") as file:
             json.dump(data_str, file, indent=2)
 
-    def get_dataframes(self, df_metrics: List[str | CustomMetric]) -> Dict[str, pd.DataFrame]:
+    def get_dataframes(self, df_metrics: List[str | CustomMetric]) -> Tuple[Dict[str, pd.DataFrame], List[str]]:
         """
         Extract data from JSON and create rows.
         Create DataFrame form rows.
-        Returns dictionary {problem: problem's DataFrame}.
+        Returns tuple of:
+            [0] dictionary {problem: problem's DataFrame}.
+            [1] A list of metrics that have been successfully calculated.
+        Only successfully calculated metrics will be plotted.
         df_metrics -- metrics to put in columns, subset of
         Metrics.metrics_to_plot or your CustomMetric objects
         """
         result_dict = {}
         problem_rows = {}
+
+        success_metrics = []
 
         for problem, problem_data in self.data.items():
             x_opt = None
@@ -294,29 +299,40 @@ class BenchmarkResult:
                             run_num = int(run[4:])
                             for df_metric in df_metrics:
                                 df_metric_key = str(df_metric)  # string representation of metric (label)
+                                if df_metric_key not in success_metrics:
+                                    success_metrics.append(df_metric_key)
                                 custom_df_metric_flag = isinstance(df_metric, CustomMetric)
                                 if isinstance(df_metric, str):
                                     if df_metric not in Metrics.metrics_to_plot:
                                         logging.warning(
                                             f"Unknown metric '{df_metric}'. Use CustomMetric to specify your own metric."
                                         )
-                                        continue
+                                        if df_metric_key in success_metrics:
+                                            success_metrics.remove(df_metric_key)
 
                                 val = None
                                 if df_metric_key in run_data.keys():
                                     val = run_data[df_metric_key][iteration]
                                 elif custom_df_metric_flag:
-                                    val = df_metric.func(
-                                        run_data["x"][iteration]
-                                    )
+                                    try:
+                                        val = df_metric.func(
+                                            run_data["x"][iteration]
+                                        )
+                                    except:
+                                        logging.warning(
+                                            msg=f"Something went wrong while calculating the CustomMetric '{df_metric_key}'."
+                                        )
+                                        if df_metric_key in success_metrics:
+                                            success_metrics.remove(df_metric_key)
                                 elif df_metric_key == "x_gap":
                                     if x_opt is not None:
                                         val = float(jnp.linalg.norm(run_data["x"][iteration] - x_opt))
                                     else:
                                         logging.warning(
-                                            msg=f"Cannot calculate x_gap because there is no information about x_opt. x_gap set to 1."
+                                            msg=f"Cannot calculate x_gap because there is no information about x_opt."
                                         )
-                                        val = 1
+                                        if df_metric_key in success_metrics:
+                                            success_metrics.remove(df_metric_key)
                                 elif df_metric_key == "f_gap":
                                     if f_opt is not None:
                                         if "f" in run_data.keys():
@@ -325,14 +341,16 @@ class BenchmarkResult:
                                             val = jnp.abs(self.problem.f(run_data["x"][iteration]) - f_opt)
                                         else:
                                             logging.warning(
-                                                msg="Cannot calculate f_gap because there is impossible to compute f_opt. f_gap set to 1."
+                                                msg="Cannot calculate f_gap because there is impossible to compute f_opt."
                                             )
-                                            val = 1
+                                            if df_metric_key in success_metrics:
+                                                success_metrics.remove(df_metric_key)
                                     else:
                                         logging.warning(
-                                            msg="Cannot calculate f_gap because there is impossible to compute f_opt. f_gap set to 1."
+                                            msg="Cannot calculate f_gap because there is impossible to compute f_opt."
                                         )
-                                        val = 1
+                                        if df_metric_key in success_metrics:
+                                            success_metrics.remove(df_metric_key)
                                 elif df_metric_key == "grad_norm":
                                     if "grad" in run_data.keys():
                                         val = float(jnp.linalg.norm(run_data["grad"][iteration]))
@@ -343,9 +361,10 @@ class BenchmarkResult:
                                             val = float(jnp.linalg.norm(jax.grad(self.problem.f)(run_data["x"][iteration])))
                                     else:
                                         logging.warning(
-                                            msg="Cannot calculate grad_norm because there is no information about grad. grad_norm set to 1."
+                                            msg="Cannot calculate 'grad_norm' because there is no information about grad."
                                         )
-                                        val = 1
+                                        if df_metric_key in success_metrics:
+                                            success_metrics.remove(df_metric_key)
                                 elif df_metric_key == "x_norm":
                                     val = float(jnp.linalg.norm(run_data["x"][iteration]))
                                 elif df_metric_key == "f":
@@ -353,12 +372,53 @@ class BenchmarkResult:
                                         val = self.problem.f(run_data["x"][iteration])
                                     else:
                                         logging.warning(
-                                            msg="Cannot calculate 'f' metric because there is no information about problem. 'f' value set to 1."
+                                            msg="Cannot calculate 'f' metric because there is no information about problem."
                                         )
-                                        val = 1
-
-
-
+                                        if df_metric_key in success_metrics:
+                                            success_metrics.remove(df_metric_key)
+                                elif df_metric_key == "relative_x_gap":
+                                    if x_opt is not None:
+                                        if jnp.linalg.norm(x_opt) != 0:
+                                            val = jnp.linalg.norm(run_data["x"][iteration] - x_opt) / jnp.linalg.norm(x_opt)
+                                        else:
+                                            logging.warning(
+                                                msg="Cannot calculate 'relative_x_gap' metric because ||x_opt|| = 0."
+                                            )
+                                            if df_metric_key in success_metrics:
+                                                success_metrics.remove(df_metric_key)
+                                    else:
+                                        logging.warning(
+                                            msg="Cannot calculate 'relative_x_gap' metric because there is no information about x_opt."
+                                        )
+                                        if df_metric_key in success_metrics:
+                                            success_metrics.remove(df_metric_key)
+                                
+                                elif df_metric_key == "relative_f_gap":
+                                    if f_opt is not None:
+                                        if f_opt != 0:
+                                            if "f" in run_data.keys():
+                                                val = jnp.abs(run_data["f"][iteration] - f_opt) / jnp.abs(f_opt)
+                                            elif isinstance(self.problem, Problem):
+                                                f_val = self.problem.f(run_data["x"][iteration])
+                                                val = jnp.abs(f_val - f_opt) / jnp.abs(f_opt)
+                                            else:
+                                                logging.warning(
+                                                    msg="Cannot calculate 'relative_f_gap' metric because there is no information about f."
+                                                )
+                                                if df_metric_key in success_metrics:
+                                                    success_metrics.remove(df_metric_key)
+                                        else:
+                                            logging.warning(
+                                                msg="Cannot calculate 'relative_f_gap' metric because f_opt = 0."
+                                            )
+                                            if df_metric_key in success_metrics:
+                                                success_metrics.remove(df_metric_key)
+                                    else:
+                                        logging.warning(
+                                            msg="Cannot calculate 'relative_f_gap' metric because there is no information about f_opt."
+                                        )
+                                        if df_metric_key in success_metrics:
+                                            success_metrics.remove(df_metric_key)
 
                                 row[df_metric_key + "_" + str(run_num)] = val
                                 if df_metric_key in to_means_stds.keys():
@@ -376,7 +436,7 @@ class BenchmarkResult:
         for problem, rows in problem_rows.items():
             result_dict[problem] = pd.DataFrame(rows)
 
-        return result_dict
+        return result_dict, success_metrics
 
     def plot(
         self,

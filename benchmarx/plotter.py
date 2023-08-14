@@ -185,17 +185,11 @@ class Plotter:
         include_plotlyjs:       string.
         full_html, bool:        full html.
         """
-        dfs = self.benchmark_result.get_dataframes(df_metrics=metrics)
+        dfs, good_str_metrics = self.benchmark_result.get_dataframes(df_metrics=metrics)
         for _, df in dfs.items():
-            # df.to_csv("df_to_plot.csv")
-            metrics_str = [metric for metric in metrics if isinstance(metric, str)]
-            metrics_str += [
-                metric.label for metric in metrics if isinstance(metric, CustomMetric)
-            ]
             dropdown_options = [
-                {"label": metric, "value": metric} for metric in metrics_str
+                {"label": metric, "value": metric} for metric in good_str_metrics
             ]
-            # print(f"dwopdown_options: {dropdown_options}")
             figure = self.plotly_figure(dataframe=df, dropdown_options=dropdown_options)
             figure.show(config=plotly_config)
 

@@ -22,12 +22,14 @@ class Metrics:
     metric to be tracked over the course of the method.
     Each of these metrics can be calculated along the method trajectory.)
 
-        label		value
-    [1]	x_gap		||x-x_opt||
-    [2] 	f		f
-    [3]	f_gap		|f-f_opt|
-    [4]	grad_norm	||grad||
-    [5]	x_norm		||x||
+        label		        value
+    [1]	x_gap ............. ||x-x_opt||
+    [2] 	f ............. f
+    [3]	f_gap ............. |f-f_opt|
+    [4]	grad_norm ......... ||grad||
+    [5]	x_norm ............ ||x||
+    [6] relative_x_gap .... ||x-x_opt||/||x_opt||, if x_opt != 0
+    [7] relative_f_gap .... ||f-f_opt||/||f_opt||, if f_opt != 0
 
     Note: if one of the compulsory metrics to track is not
     contained in the list of metrics to track (it is set when
@@ -37,7 +39,7 @@ class Metrics:
 
     compulsory_metrics_to_track = ["x", "nit"]
     metrics_to_track = ["x", "f", "grad", "nit", "nfev", "njev", "nhev", "time"]
-    metrics_to_plot = ["x_gap", "f", "f_gap", "grad_norm", "x_norm"]
+    metrics_to_plot = ["x_gap", "f", "f_gap", "grad_norm", "x_norm", "relative_x_gap", "relative_f_gap"]
     metrics_to_track_now = ["x", "nfev", "nhev", "njev", "time"]
 
     def __init__(self) -> None:

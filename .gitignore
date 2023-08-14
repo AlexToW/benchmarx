@@ -14,3 +14,6 @@ benchmarx.egg-info
 pyproject.toml
 examples/*.json
 examples/*.pdf
+*.html
+*.json
+*.csv

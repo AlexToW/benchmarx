@@ -13,7 +13,7 @@ from benchmarx.benchmark_result import BenchmarkResult
 from benchmarx.custom_optimizer import CustomOptimizer
 
 from benchmarx.ProxGD_custom_linesearch import GradientDescentCLS
-from benchmarx.plotter import Plotter
+from benchmarx.defaults import default_seed
 
 
 class Benchmark:
@@ -260,7 +260,10 @@ class Benchmark:
                         res.methods.append(method)
                         x_init = None
                         label = "jaxopt.GradientDescent"
-                        seed = str(self.problem.seed)
+                        if hasattr(self.problem, "sedd"):
+                            seed = str(self.problem.seed)
+                        else:
+                            seed = str(default_seed)
                         if "x_init" in params:
                             x_init = params["x_init"]
                             params.pop("x_init")
@@ -352,7 +355,10 @@ class Benchmark:
                         res.methods.append(method)
                         x_init = None
                         label = "jaxopt.BFGS"
-                        seed = str(self.problem.seed)
+                        if hasattr(self.problem, "seed"):
+                            seed = str(self.problem.seed)
+                        else:
+                            seed = str(default_seed)
                         if "x_init" in params:
                             x_init = params["x_init"]
                             params.pop("x_init")
@@ -430,7 +436,10 @@ class Benchmark:
                         res.methods.append(method)
                         x_init = None
                         label = "jaxopt.LBFGS"
-                        seed = str(self.problem.seed)
+                        if hasattr(self.problem, "seed"):
+                            seed = str(self.problem.seed)
+                        else:
+                            seed = str(default_seed)
                         if "x_init" in params:
                             x_init = params["x_init"]
                             params.pop("x_init")
@@ -502,7 +511,10 @@ class Benchmark:
                         res.methods.append(method)
                         x_init = None
                         label = "jaxopt.ArmijoSGD"
-                        seed = str(self.problem.seed)
+                        if hasattr(self.problem, "seed"):
+                            seed = str(self.problem.seed)
+                        else:
+                            seed = str(default_seed)
                         if "x_init" in params:
                             x_init = params["x_init"]
                             params.pop("x_init")
@@ -539,7 +551,10 @@ class Benchmark:
                         res.methods.append(method)
                         x_init = None
                         label = "jaxopt.PolyakSGD"
-                        seed = str(self.problem.seed)
+                        if hasattr(self.problem, "seed"):
+                            seed = str(self.problem.seed)
+                        else:
+                            seed = str(default_seed)
                         if "x_init" in params:
                             x_init = params["x_init"]
                             params.pop("x_init")
@@ -590,7 +605,10 @@ class Benchmark:
                     if "x_init" not in params_to_write:
                         params_to_write["x_init"] = x_init
                     params_to_write["label"] = custom_solver.label
-                    params_to_write["seed"] = self.problem.seed
+                    if hasattr(self.problem, "seed"):
+                        params_to_write["seed"] = self.problem.seed
+                    else:
+                        params_to_write["seed"] = default_seed
                     data[self.problem][method] = {
                         "hyperparams": params_to_write,
                         "runs": runs_dict,

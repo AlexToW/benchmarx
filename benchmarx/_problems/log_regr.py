@@ -11,7 +11,9 @@ class LogisticRegression(Problem):
     """
     A class describing an unconstrained logistic regression problem.
 
-    f(w) = 1/n sum_{i=1}^n ln(1 + exp(-y_i * w.T @ x_i)) -> min_w
+    f(w) = 1/n sum_{i=1}^n f_i(w) -> min_w,
+    f_i(w) = ln(1 + exp(-y_i * w.T @ x_i))
+
 
     Typical usage example:
 
@@ -42,40 +44,50 @@ class LogisticRegression(Problem):
         else:
             raise ValueError(f"Unknown problem type: {problem_type}")
 
+    @staticmethod
     @jax.jit
-    def LogLoss(self, w, X, y):
+    def LogLoss(w, X, y):
         """
         Log Loss function
         """
-        loss = 0
-        for i in range(X.shape[0]):
-            loss += jnp.log(1 + jnp.exp(-y[i] * (w.T @ X[i])))
-        return loss / X.shape[0]
+        return jnp.mean(jnp.logaddexp(jnp.zeros(X.shape[0]), -y * (X @ w)))
 
+    @staticmethod
     @jax.jit
-    def GradLogLoss(self, w, X, y):
+    def GradLogLoss(w, X, y):
         """
         Log Loss gradient
         """
-        g = jnp.zeros(w.shape)
-        for i in range(X.shape[0]):
-            g += y[i] * X[i] / (1 + jnp.exp(y[i] * w.T @ X[i]))
-        return -g / X.shape[0]
+        func = lambda w: LogisticRegression.LogLoss(w, X, y)
+        return jax.grad(func)(w)
 
     def f(self, w, *args, **kwargs):
         """
         Objective function: log loss on train
         """
-        return self.LogLoss(w=w, X=self.X_train, y=self.y_train)
+        return LogisticRegression.LogLoss(w=w, X=self.X_train, y=self.y_train)
+    
+    def f_i(self, w, i, *args, **kwargs):
+        """
+        i-th summand of LogLoss function
+        """
+        return jnp.log(1 + jnp.exp(-self.y_train[i] * w.T @ self.X_train[i]))
+    
+    def grad_i(self, w, i, *args, **kwargs):
+        """
+        gradient of i-th summand of LogLoss function
+        """
+        func = lambda w: self.f_i(w, i)
+        return jax.grad(func)(w)
 
     def grad(self, w, *args, **kwargs):
         """
         log loss gradient on train
         """
-        return self.GradLogLoss(w=w, X=self.X_train, y=self.y_train)
+        return jnp.array(LogisticRegression.GradLogLoss(w=w, X=self.X_train, y=self.y_train))
     
-    @jax.jit
-    def accuracy(self, w, X, y):
+    @staticmethod
+    def accuracy(w, X, y):
         """
         Compute accuracy on (X, y)
         """
@@ -85,10 +97,10 @@ class LogisticRegression(Problem):
         """
         Compute accuracy on (X_train, y_train)
         """
-        return self.accuracy(w=w, X=self.X_train, y=self.y_train)
+        return LogisticRegression.accuracy(w=w, X=self.X_train, y=self.y_train)
     
     def test_accuracy(self, w):
         """
         Compute accuracy on (X_test, y_test)
         """
-        return self.accuracy(w=w, X=self.X_test, y=self.y_test)
+        return LogisticRegression.accuracy(w=w, X=self.X_test, y=self.y_test)

@@ -66,6 +66,12 @@ class LogisticRegression(Problem):
         Objective function: log loss on train
         """
         return LogisticRegression.LogLoss(w=w, X=self.X_train, y=self.y_train)
+
+    def test_loss(self, w, *args, **kwargs):
+        """
+        log loss on test
+        """
+        return LogisticRegression.LogLoss(w=w, X=self.X_test, y=self.y_test)
     
     def f_i(self, w, i, *args, **kwargs):
         """

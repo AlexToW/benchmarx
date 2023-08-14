@@ -7,6 +7,7 @@ import logging
 from typing import List, Dict
 
 from benchmarx.problem import Problem
+from benchmarx.model_problem import ModelProblem
 import benchmarx.methods as _methods
 import benchmarx.metrics as _metrics
 from benchmarx.benchmark_result import BenchmarkResult
@@ -208,6 +209,46 @@ class Benchmark:
                     result["grad"] = [grad_val]
                 else:
                     result["grad"].append(grad_val)
+            
+            # for ModelProblem problem it's necessary to track:
+            # train_loss (aka problem.f)
+            # test_loss
+            # train_accuracy
+            # test_accuracy
+            if isinstance(self.problem, ModelProblem):
+                # train_loss metric tracking
+                train_loss_val = None
+                if "f" in self.str_metrics_to_track:
+                    train_loss_val = result["f"][-1]
+                else:
+                    train_loss_val = self.problem.train_loss(sol)
+
+                if not "train_loss" in result:
+                    result["train_loss"] = [train_loss_val]
+                else:
+                    result["train_loss"].append(train_loss_val)
+
+                # test_loss metric tracking
+                test_loss_val = self.problem.test_loss(sol)
+                if not "test_loss" in result:
+                    result["test_loss"] = [test_loss_val]
+                else:
+                    result["test_loss"].append(test_loss_val)
+
+                # train_accuracy metric tracking
+                train_accuracy_val = self.problem.train_accuracy(sol)
+                if not "train_accuracy" in result:
+                    result["train_accuracy"] = [train_accuracy_val]
+                else:
+                    result["train_accuracy"].append(train_accuracy_val)
+                
+                # test_accuracy metric tracking
+                test_accuracy_val = self.problem.test_accuracy(sol)
+                if not "test_accuracy" in result:
+                    result["test_accuracy"] = [test_accuracy_val]
+                else:
+                    result["test_accuracy"].append(test_accuracy_val)
+                    
 
             # custom metrics moment
             for custom_metric in self.custom_metrics_to_track:

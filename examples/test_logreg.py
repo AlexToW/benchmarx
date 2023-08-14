@@ -20,11 +20,11 @@ from benchmarx.custom_optimizer import CustomOptimizer
 from benchmarx._problems.log_regr import LogisticRegression
 
 
-class SGD(CustomOptimizer):
+class CSGD(CustomOptimizer):
     """
-    SGD for LogLoss like f(w) = 1/n sum_{i=1}^n f_i(w)
+    CSGD for LogLoss
     """
-    def __init__(self, x_init, stepsize, problem, tol=0, maxiter=1000, label = 'SGD'):
+    def __init__(self, x_init, stepsize, problem, tol=0, maxiter=1000, label = 'CSGD'):
         params = {
             'x_init': x_init,
             'tol': tol,
@@ -48,59 +48,45 @@ class SGD(CustomOptimizer):
     def update(self, sol, state: State) -> tuple([jnp.array, State]):
         n = self.problem.n_train
         d = self.problem.d_train
-        g = jnp.zeros(d)
-        #random.seed(state.iter_num)
+        
+        full_grad = jax.grad(self.problem.f)(sol)
+
         indices = random.sample(
-            population=list(range(n)),
+            population=list(range(d)),
             k=self.batch
         )
+        g = jnp.zeros(d)
         for ind in indices:
-            g += self.problem.grad_i(sol, ind)
-        sol = sol - self.stepsize / self.batch * g
+            #print(type(full_grad.at[ind]), full_grad.at[ind])
+            g = g.at[ind].set(full_grad[ind])
+        sol = sol - self.stepsize * d / self.batch * g
         state.iter_num += 1
         return sol, state
     
     def stop_criterion(self, sol, state: State) -> bool:
         return False
-    
-
 
 def _main():
     problem = LogisticRegression("mushrooms")
-
-    train_acc_metric = CustomMetric(
-        func= lambda w: problem.train_accuracy(w),
-        label="train accuracy"
-    )
-
-    test_acc_metric = CustomMetric(
-        func= lambda w: problem.test_accuracy(w),
-        label="test accuracy"
-    )
-
-    test_loss = CustomMetric(
-        func=lambda w: problem.test_loss(w),
-        label="test loss"
-    )
 
     key = jax.random.PRNGKey(110520)
     x_init = jax.random.uniform(key, minval=0, maxval=1, shape=(problem.d_train,))
     nit = 250
 
-    sgd_solver = SGD(
+    csgd_solver = CSGD(
         x_init=x_init,
-        stepsize=4/5.25,
+        stepsize=2/5.25,
         problem=problem,
         tol=0,
         maxiter=nit,
-        label='SGD'
+        label="CSGD"
     )
 
     benchmark = Benchmark(
         runs=2,
         problem=problem,
         methods=[{
-            "SGD": sgd_solver
+            "CSGD": csgd_solver
         },
         {
             'GRADIENT_DESCENT_const_step': {
@@ -125,13 +111,11 @@ def _main():
         ],
         metrics=[
             "f",
-            "grad"
         ],
     )
 
     result = benchmark.run()
     result.plot(
-        metrics=["f", "grad_norm", train_acc_metric, test_acc_metric, test_loss],
         write_html=True,
         path_to_write="logreg_plot.html"
     )

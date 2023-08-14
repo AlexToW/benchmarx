@@ -235,7 +235,6 @@ class BenchmarkResult:
 
     def get_dataframes(self, df_metrics: List[str | CustomMetric]) -> Tuple[Dict[str, pd.DataFrame], List[str]]:
         """
-        Extract data from JSON and create rows.
         Create DataFrame form rows.
         Returns tuple of:
             [0] dictionary {problem: problem's DataFrame}.
@@ -303,7 +302,7 @@ class BenchmarkResult:
                                     success_metrics.append(df_metric_key)
                                 custom_df_metric_flag = isinstance(df_metric, CustomMetric)
                                 if isinstance(df_metric, str):
-                                    if df_metric not in Metrics.metrics_to_plot:
+                                    if df_metric not in Metrics.metrics_to_plot and df_metric not in Metrics.model_metrics_to_plot:
                                         logging.warning(
                                             f"Unknown metric '{df_metric}'. Use CustomMetric to specify your own metric."
                                         )
@@ -440,7 +439,7 @@ class BenchmarkResult:
 
     def plot(
         self,
-        metrics: List[str | CustomMetric],
+        metrics: List[str | CustomMetric] = [],
         plotly_config=default_plotly_config,
         write_html: bool = False,
         path_to_write: str = "",

@@ -41,6 +41,7 @@ class Metrics:
     metrics_to_track = ["x", "f", "grad", "nit", "nfev", "njev", "nhev", "time"]
     metrics_to_plot = ["x_gap", "f", "f_gap", "grad_norm", "x_norm", "relative_x_gap", "relative_f_gap"]
     metrics_to_track_now = ["x", "nfev", "nhev", "njev", "time"]
+    model_metrics_to_plot = ["train_loss", "test_loss", "train_accuracy", "test_accuracy"]
 
     def __init__(self) -> None:
         pass

@@ -1,13 +1,15 @@
-from benchmarx.problem import Problem
 import jax.numpy as jnp
 import jax
 import logging
+
 from sklearn.datasets import load_svmlight_file
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
+from benchmarx.model_problem import ModelProblem
 
-class LogisticRegression(Problem):
+
+class LogisticRegression(ModelProblem):
     """
     A class describing an unconstrained logistic regression problem.
 
@@ -17,15 +19,13 @@ class LogisticRegression(Problem):
 
     Typical usage example:
 
-    problem = LinearLeastSquares("random", m=3, n=3)
+    problem = LogisticRegression("mushrooms")
     benchmark = Benchmark(problem=problem, ...)
     result = benchmark.run()
     """
 
-    def __init__(self, problem_type: str = "mushrooms") -> None:
-        super().__init__(
-            info=f"Logistic Regression problem on {problem_type} dataset", func=self.f
-        )
+    def __init__(self, problem_type: str = "mushrooms", x_opt=None) -> None:
+        super().__init__(info=f"Logistic Regression problem on {problem_type} dataset", x_opt=x_opt)
 
         if problem_type == "mushrooms":
             self.problem_type = problem_type
@@ -46,67 +46,38 @@ class LogisticRegression(Problem):
 
     @staticmethod
     @jax.jit
-    def LogLoss(w, X, y):
+    def log_loss(w, X, y):
         """
-        Log Loss function
+        Logistic Loss function
         """
         return jnp.mean(jnp.logaddexp(jnp.zeros(X.shape[0]), -y * (X @ w)))
 
-    @staticmethod
-    @jax.jit
-    def GradLogLoss(w, X, y):
-        """
-        Log Loss gradient
-        """
-        func = lambda w: LogisticRegression.LogLoss(w, X, y)
-        return jax.grad(func)(w)
-
-    def f(self, w, *args, **kwargs):
-        """
-        Objective function: log loss on train
-        """
-        return LogisticRegression.LogLoss(w=w, X=self.X_train, y=self.y_train)
-
-    def test_loss(self, w, *args, **kwargs):
-        """
-        log loss on test
-        """
-        return LogisticRegression.LogLoss(w=w, X=self.X_test, y=self.y_test)
-    
-    def f_i(self, w, i, *args, **kwargs):
-        """
-        i-th summand of LogLoss function
-        """
-        return jnp.log(1 + jnp.exp(-self.y_train[i] * w.T @ self.X_train[i]))
-    
-    def grad_i(self, w, i, *args, **kwargs):
-        """
-        gradient of i-th summand of LogLoss function
-        """
-        func = lambda w: self.f_i(w, i)
-        return jax.grad(func)(w)
-
-    def grad(self, w, *args, **kwargs):
-        """
-        log loss gradient on train
-        """
-        return jnp.array(LogisticRegression.GradLogLoss(w=w, X=self.X_train, y=self.y_train))
-    
-    @staticmethod
-    def accuracy(w, X, y):
+    def accuracy(self, w, X, y):
         """
         Compute accuracy on (X, y)
         """
-        return accuracy_score(y, jnp.around(2 / (1 + jnp.exp(- X @ w))) - 1)
-    
-    def train_accuracy(self, w):
+        return accuracy_score(y, jnp.around(2 / (1 + jnp.exp(-X @ w))) - 1)
+
+    def train_loss(self, w, *args, **kwargs):
         """
-        Compute accuracy on (X_train, y_train)
+        Logistic Loss function on the train part of dataset
         """
-        return LogisticRegression.accuracy(w=w, X=self.X_train, y=self.y_train)
-    
-    def test_accuracy(self, w):
+        return LogisticRegression.log_loss(w=w, X=self.X_train, y=self.y_train)
+
+    def test_loss(self, w, *args, **kwargs):
         """
-        Compute accuracy on (X_test, y_test)
+        Logistic Loss function on the test part of dataset
         """
-        return LogisticRegression.accuracy(w=w, X=self.X_test, y=self.y_test)
+        return LogisticRegression.log_loss(w=w, X=self.X_test, y=self.y_test)
+
+    def train_accuracy(self, w, *args, **kwargs):
+        """
+        Accuracy on the train part of dataset
+        """
+        return self.accuracy(w=w, X=self.X_train, y=self.y_train)
+
+    def test_accuracy(self, w, *args, **kwargs):
+        """
+        Accuracy on the test part of dataset
+        """
+        return self.accuracy(w=w, X=self.X_test, y=self.y_test)

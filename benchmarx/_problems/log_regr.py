@@ -4,6 +4,7 @@ import jax
 import logging
 from sklearn.datasets import load_svmlight_file
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
 
 
 class LogisticRegression(Problem):
@@ -61,16 +62,33 @@ class LogisticRegression(Problem):
             g += y[i] * X[i] / (1 + jnp.exp(y[i] * w.T @ X[i]))
         return -g / X.shape[0]
 
-    @jax.jit
     def f(self, w, *args, **kwargs):
         """
         Objective function: log loss on train
         """
         return self.LogLoss(w=w, X=self.X_train, y=self.y_train)
 
-    @jax.jit
     def grad(self, w, *args, **kwargs):
         """
         log loss gradient on train
         """
         return self.GradLogLoss(w=w, X=self.X_train, y=self.y_train)
+    
+    @jax.jit
+    def accuracy(self, w, X, y):
+        """
+        Compute accuracy on (X, y)
+        """
+        return accuracy_score(y, jnp.around(2 / (1 + jnp.exp(- X @ w))) - 1)
+    
+    def train_accuracy(self, w):
+        """
+        Compute accuracy on (X_train, y_train)
+        """
+        return self.accuracy(w=w, X=self.X_train, y=self.y_train)
+    
+    def test_accuracy(self, w):
+        """
+        Compute accuracy on (X_test, y_test)
+        """
+        return self.accuracy(w=w, X=self.X_test, y=self.y_test)

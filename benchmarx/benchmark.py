@@ -134,13 +134,13 @@ class Benchmark:
 
 
         iters_total = 0
-        for i in range(solver.maxiter):
+        for i in range(solver.maxiter + 1):
             if i > 0:
-                iters_total = i + 1
                 if not custom_method_flag and stop_criterion(state.error, tol):
                     break
                 if custom_method_flag and solver.stop_criterion(sol, state):
                     break
+                iters_total = i + 1
 
             if isinstance(sol, float):
                 sol = jnp.array([sol])

@@ -5,6 +5,7 @@ import jax.numpy as jnp
 import jaxopt
 import time
 import random
+from math import sqrt
 
 sys.path.insert(1, os.path.abspath(os.path.join(os.path.dirname("benchmarx"), "..")))
 
@@ -77,9 +78,14 @@ def _main():
         label="test accuracy"
     )
 
+    test_loss = CustomMetric(
+        func=lambda w: problem.test_loss(w),
+        label="test loss"
+    )
+
     key = jax.random.PRNGKey(110520)
     x_init = jax.random.uniform(key, minval=0, maxval=1, shape=(problem.d_train,))
-    nit = 200
+    nit = 250
 
     sgd_solver = SGD(
         x_init=x_init,
@@ -91,7 +97,7 @@ def _main():
     )
 
     benchmark = Benchmark(
-        runs=4,
+        runs=2,
         problem=problem,
         methods=[{
             "SGD": sgd_solver
@@ -105,6 +111,16 @@ def _main():
                 'acceleration': False,
                 'label': 'GD'
             },
+        },
+        {
+            'GRADIENT_DESCENT_adapt_step': {
+                'x_init' : x_init,
+                'tol': 0,
+                'maxiter': nit,
+                'stepsize' : lambda iter_num: 2/(jnp.sqrt(iter_num) + 1),
+                'acceleration': False,
+                'label': 'GD adapt step'
+            },
         }
         ],
         metrics=[
@@ -115,7 +131,9 @@ def _main():
 
     result = benchmark.run()
     result.plot(
-        metrics=["f", "grad_norm", train_acc_metric, test_acc_metric]
+        metrics=["f", "grad_norm", train_acc_metric, test_acc_metric, test_loss],
+        write_html=True,
+        path_to_write="logreg_plot.html"
     )
     result.save(
         path="logreg_test_res.json"

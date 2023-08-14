@@ -24,8 +24,8 @@ class LogisticRegression(ModelProblem):
     result = benchmark.run()
     """
 
-    def __init__(self, info: str, problem_type: str = "mushrooms", x_opt=None) -> None:
-        super().__init__(info, x_opt)
+    def __init__(self, problem_type: str = "mushrooms", x_opt=None) -> None:
+        super().__init__(info=f"Logistic Regression problem on {problem_type} dataset", x_opt=x_opt)
 
         if problem_type == "mushrooms":
             self.problem_type = problem_type
@@ -44,14 +44,15 @@ class LogisticRegression(ModelProblem):
         else:
             raise ValueError(f"Unknown problem type: {problem_type}")
 
+    @staticmethod
     @jax.jit
-    def log_loss(self, w, X, y):
+    def log_loss(w, X, y):
         """
         Logistic Loss function
         """
         return jnp.mean(jnp.logaddexp(jnp.zeros(X.shape[0]), -y * (X @ w)))
 
-    def accuracy(w, X, y):
+    def accuracy(self, w, X, y):
         """
         Compute accuracy on (X, y)
         """
@@ -61,22 +62,22 @@ class LogisticRegression(ModelProblem):
         """
         Logistic Loss function on the train part of dataset
         """
-        return self.log_loss(w, X=self.X_train, y=self.y_train)
+        return LogisticRegression.log_loss(w=w, X=self.X_train, y=self.y_train)
 
     def test_loss(self, w, *args, **kwargs):
         """
         Logistic Loss function on the test part of dataset
         """
-        return self.log_loss(w, X=self.X_test, y=self.y_test)
+        return LogisticRegression.log_loss(w=w, X=self.X_test, y=self.y_test)
 
     def train_accuracy(self, w, *args, **kwargs):
         """
         Accuracy on the train part of dataset
         """
-        return self.accuracy(X=self.X_train, y=self.y_train)
+        return self.accuracy(w=w, X=self.X_train, y=self.y_train)
 
     def test_accuracy(self, w, *args, **kwargs):
         """
         Accuracy on the test part of dataset
         """
-        return self.accuracy(X=self.X_test, y=self.y_test)
+        return self.accuracy(w=w, X=self.X_test, y=self.y_test)

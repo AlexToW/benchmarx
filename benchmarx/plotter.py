@@ -170,7 +170,7 @@ class Plotter:
 
     def plot(
         self,
-        metrics: List[str | CustomMetric],
+        metrics: List[str | CustomMetric] = [],
         plotly_config=default_plotly_config,
         write_html: bool = False,
         path_to_write: str = "",
@@ -185,7 +185,19 @@ class Plotter:
         include_plotlyjs:       string.
         full_html, bool:        full html.
         """
-        dfs, good_str_metrics = self.benchmark_result.get_dataframes(df_metrics=metrics)
+
+        # Metrics.model_metrics_to_plot are tracking in Benchmark, if the problem
+        # inherits from ModelProblem. Thus if the problem inherits from ModelProblem,
+        # metrics Metrics.model_metrics_to_plot are always will be "successful", 
+        # i.e. this metrics will be in good_str_metrics returned from benchmark_result.get_dataframes
+        # (if the problem inherits from ModelProblem), and vice versa: 
+        # if the problem does NOT inherit from ModelProblem, Metrics.model_metrics_to_plot
+        # will not be contained in good_str_metrics.
+        # Therefore, by adding Metrics.model_metrics_to_plot to df_metrics for passing to
+        # benchmark_result.get_dataframes, Metrics.model_metrics_to_plot will be plotted in case 
+        # if problem inherits from ModelProblem, and will NOT be plotted in case if problem does NOT
+        # inherit from ModelProblem.
+        dfs, good_str_metrics = self.benchmark_result.get_dataframes(df_metrics=metrics + Metrics.model_metrics_to_plot)
         for _, df in dfs.items():
             dropdown_options = [
                 {"label": metric, "value": metric} for metric in good_str_metrics

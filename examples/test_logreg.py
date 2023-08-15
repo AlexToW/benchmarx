@@ -65,9 +65,12 @@ class CSGD(CustomOptimizer):
     
     def stop_criterion(self, sol, state: State) -> bool:
         return False
+    
 
-def _main():
+def logreg_mushrooms():
     problem = LogisticRegression("mushrooms")
+
+    L = problem.estimate_L()
 
     key = jax.random.PRNGKey(110520)
     x_init = jax.random.uniform(key, minval=0, maxval=1, shape=(problem.d_train,))
@@ -75,7 +78,7 @@ def _main():
 
     csgd_solver = CSGD(
         x_init=x_init,
-        stepsize=2/5.25,
+        stepsize=20/L,
         problem=problem,
         tol=0,
         maxiter=nit,
@@ -93,7 +96,7 @@ def _main():
                 'x_init' : x_init,
                 'tol': 0,
                 'maxiter': nit,
-                'stepsize' : 2/5.25,
+                'stepsize' : 20/L,
                 'acceleration': False,
                 'label': 'GD'
             },
@@ -103,7 +106,7 @@ def _main():
                 'x_init' : x_init,
                 'tol': 0,
                 'maxiter': nit,
-                'stepsize' : lambda iter_num: 2/(jnp.sqrt(iter_num) + 1),
+                'stepsize' : lambda iter_num: 20/(L + iter_num/20),
                 'acceleration': False,
                 'label': 'GD adapt step'
             },
@@ -122,6 +125,70 @@ def _main():
     result.save(
         path="logreg_test_res.json"
     )
+
+
+def logreg_cancer():
+    problem = LogisticRegression("breast_cancer")
+
+    L = problem.estimate_L()
+
+    key = jax.random.PRNGKey(110520)
+    x_init = jax.random.uniform(key, minval=0, maxval=1, shape=(problem.d_train,))
+    nit = 250
+
+
+    csgd_solver = CSGD(
+        x_init=x_init,
+        stepsize=34/L,
+        problem=problem,
+        tol=0,
+        maxiter=nit,
+        label="CSGD"
+    )
+
+    benchmark = Benchmark(
+        runs=2,
+        problem=problem,
+        methods=[{
+            "CSGD": csgd_solver
+        },
+        {
+            'GRADIENT_DESCENT_const_step': {
+                'x_init' : x_init,
+                'tol': 0,
+                'maxiter': nit,
+                'stepsize' : 20/L,
+                'acceleration': False,
+                'label': 'GD'
+            },
+        },
+        {
+            'GRADIENT_DESCENT_adapt_step': {
+                'x_init' : x_init,
+                'tol': 0,
+                'maxiter': nit,
+                'stepsize' : lambda iter_num: 20/(L + iter_num/20),
+                'acceleration': False,
+                'label': 'GD adapt step'
+            },
+        }
+        ],
+        metrics=[
+            "f",
+        ],
+    )
+
+    result = benchmark.run()
+    result.plot(
+        write_html=True,
+        path_to_write="logreg_plot.html"
+    )
+    result.save(
+        path="logreg_test_res.json"
+    )
+
+def _main():
+    logreg_cancer()
 
 
 if __name__ == "__main__":

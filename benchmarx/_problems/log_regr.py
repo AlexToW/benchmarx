@@ -64,44 +64,86 @@ class LogisticRegression(ModelProblem):
     @jax.jit
     def log_loss(w, X, y):
         """
-        Logistic Loss function
+        Calculate the logistic loss function value.
+
+        Args:
+            w (Any): Parameter vector.
+            X (Any): Input features.
+            y (Any): Target labels.
+
+        Returns:
+            Any: The logistic loss function value.
         """
         return jnp.mean(jnp.logaddexp(jnp.zeros(X.shape[0]), -y * (X @ w)))
 
     def accuracy(self, w, X, y):
         """
-        Compute accuracy on (X, y)
+        Compute accuracy on (X, y).
+
+        Args:
+            w (Any): Parameter vector.
+            X (Any): Input features.
+            y (Any): Target labels.
+
+        Returns:
+            float: Accuracy score.
         """
         return accuracy_score(y, jnp.around(2 / (1 + jnp.exp(-X @ w))) - 1)
 
     def train_loss(self, w, *args, **kwargs):
         """
-        Logistic Loss function on the train part of dataset
+        Calculate the logistic loss function on the train part of the dataset.
+
+        Args:
+            w (Any): Parameter vector.
+
+        Returns:
+            Any: The logistic loss function value.
         """
         return LogisticRegression.log_loss(w=w, X=self.X_train, y=self.y_train)
 
     def test_loss(self, w, *args, **kwargs):
         """
-        Logistic Loss function on the test part of dataset
+        Calculate the logistic loss function on the test part of the dataset.
+
+        Args:
+            w (Any): Parameter vector.
+
+        Returns:
+            Any: The logistic loss function value.
         """
         return LogisticRegression.log_loss(w=w, X=self.X_test, y=self.y_test)
 
     def train_accuracy(self, w, *args, **kwargs):
         """
-        Accuracy on the train part of dataset
+        Calculate the accuracy on the train part of the dataset.
+
+        Args:
+            w (Any): Parameter vector.
+
+        Returns:
+            float: Accuracy score.
         """
         return self.accuracy(w=w, X=self.X_train, y=self.y_train)
 
     def test_accuracy(self, w, *args, **kwargs):
         """
-        Accuracy on the test part of dataset
+        Calculate the accuracy on the test part of the dataset.
+
+        Args:
+            w (Any): Parameter vector.
+
+        Returns:
+            float: Accuracy score.
         """
         return self.accuracy(w=w, X=self.X_test, y=self.y_test)
     
     def estimate_L(self):
         """
-        Estimate the Lipschitz constant of the gradient of the logistic loss function,
-        i.e. LogLoss is L-smooth.
+        Estimate the Lipschitz constant of the gradient of the logistic loss function.
+
+        Returns:
+            float: Estimated Lipschitz constant.
         """
         outer_products = jax.vmap(lambda x: jnp.outer(x, x))(self.X_train)
         sum_of_outer_products = jnp.sum(outer_products, axis=0)

@@ -6,7 +6,11 @@ from benchmarx.problem import Problem
 
 class ModelProblem(Problem):
     """
-    This class describes the learning problem.
+    Abstract base class describing a learning problem.
+
+    Attributes:
+        info (str): Information about the problem.
+        x_opt (Optional): Optimal solution (if available).
     """
 
     def __init__(self, info: str, x_opt=None) -> None:
@@ -15,28 +19,28 @@ class ModelProblem(Problem):
     @abstractmethod
     def train_loss(self, w, *args, **kwargs):
         """
-        Train loss function (abstract method)
+        Abstract method for computing the training loss.
         """
         pass
 
     @abstractmethod
     def test_loss(self, w, *args, **kwargs):
         """
-        Test loss function (abstract method)
+        Abstract method for computing the test loss.
         """
         pass
 
     @abstractmethod
     def train_accuracy(self, w, *args, **kwargs):
         """
-        Train accuracy (abstract method)
+        Abstract method for computing the training accuracy.
         """
         pass
 
     @abstractmethod
     def test_accuracy(self, w, *args, **kwargs):
         """
-        Test accuracy (abstract method)
+        Abstract method for computing the test accuracy.
         """
         pass
 

@@ -19,6 +19,12 @@ from benchmarx.benchmark_result import BenchmarkResult
 
 
 class Plotter:
+    """
+    Class for plotting benchmark results using Plotly.
+
+    Attributes:
+        benchmark_result (BenchmarkResult): The benchmark result object.
+    """
     benchmark_result: BenchmarkResult
 
     def __init__(self, benchmark_result) -> None:
@@ -27,7 +33,16 @@ class Plotter:
     def plotly_figure(
         self, dataframe: pd.DataFrame, dropdown_options: List[Dict[str, str]]
     ) -> go.Figure:
-        """ """
+        """
+        Create a Plotly figure for plotting benchmark results.
+
+        Args:
+            dataframe (pd.DataFrame): DataFrame containing benchmark data.
+            dropdown_options (List[Dict[str, str]]): Dropdown options for selecting metrics.
+
+        Returns:
+            go.Figure: The Plotly figure.
+        """
         markers = [
             "circle",
             "square",
@@ -178,12 +193,18 @@ class Plotter:
         full_html: bool = False,
     ) -> None:
         """
-        metrics, List[str | CustomMetric], string metrics are
-            from Metrics.metrics_to_plot: metrics to plot.
-        plotly_config:          plotly config.
-        write_html, bool:       if True, html file will be write according to path_to_write.
-        include_plotlyjs:       string.
-        full_html, bool:        full html.
+        Plot benchmark results using Plotly.
+
+        Args:
+            metrics (List[str | CustomMetric]): Metrics to plot.
+            plotly_config: Plotly config.
+            write_html (bool): If True, write an HTML file.
+            path_to_write (str): Path to write the HTML file.
+            include_plotlyjs (str): Include Plotly JS in the HTML.
+            full_html (bool): Create a full HTML file.
+
+        Returns:
+            None
         """
 
         # Metrics.model_metrics_to_plot are tracking in Benchmark, if the problem

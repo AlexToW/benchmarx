@@ -23,6 +23,17 @@ class QuadraticProblem(Problem):
     b = None  # b-vector: np.array of shape (n,)
     seed = default_seed
     def __init__(self, n: int = 2, A=None, b=None, mineig=0, maxeig=1, info: str = "Quadratic problem"):
+        """
+        Initialize the QuadraticProblem instance.
+
+        Args:
+            n (int): Problem dimensionality.
+            A (np.ndarray, optional): A-matrix of shape (n,n).
+            b (np.ndarray, optional): b-vector of shape (n,).
+            mineig (float, optional): Minimum eigenvalue for random matrix A.
+            maxeig (float, optional): Maximum eigenvalue for random matrix A.
+            info (str, optional): Brief information about the problem.
+        """
         self.n = n
 
         if A is None:
@@ -43,7 +54,13 @@ class QuadraticProblem(Problem):
 
     def f(self, x, *args, **kwargs):
         """
-        Quadratic function
+        Calculate the quadratic function value.
+
+        Args:
+            x (Any): Input value for the function.
+
+        Returns:
+            Any: The quadratic function value.
         """
         x = jnp.array(x)
         return 0.5 * x.T @ self.A @ x + self.b.T @ x
@@ -75,7 +92,7 @@ class QuadraticProblem(Problem):
 
     def __get_random_vector(self, n: int = 2):
         """
-        Returns a random vector: np.array of shape (n,)
+        Returns a random vector: np.ndarray of shape (n,)
         """
         key = jax.random.PRNGKey(self.seed)
         return jax.random.uniform(key, (n,))

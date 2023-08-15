@@ -11,6 +11,15 @@ available_built_in_methods = [
 ]
 
 def check_method(methods: List[str]):
+    """
+    Check if the provided methods are supported built-in methods.
+
+    Args:
+        methods (List[str]): List of method names.
+
+    Returns:
+        bool: True if all methods are supported built-in methods, False otherwise.
+    """
     for method in methods:
         for avail_method in available_built_in_methods:
             if method.startswith(avail_method):

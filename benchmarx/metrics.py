@@ -4,8 +4,7 @@ from typing import List, Callable
 
 class Metrics:
     """
-    Metrics to track as the method runs and to save to a json file:
-
+    Class to define and manage various metrics for optimization methods.
     [1]	x	    every json-file must include this metric
     [2]	f	    objective function value
     [3]	grad	gradient of the objective function
@@ -48,6 +47,9 @@ class Metrics:
 
     @staticmethod
     def check_metrics_to_track(metrics_to_check: List[str]):
+        """
+        Check if provided metrics to track are in the default metrics_to_track list.
+        """
         for metric in metrics_to_check:
             if metric not in Metrics.metrics_to_track:
                 logging.warning(
@@ -69,37 +71,20 @@ class Metrics:
 
     @staticmethod
     def check_metrics_to_plot(metrics_to_check: List[str]):
+        """
+        Check if provided metrics to plot are in the default metrics_to_plot list.
+        """
         for metric in metrics_to_check:
             if metric not in Metrics.metrics_to_plot:
                 logging.warning(
                     msg=f"Metric '{metric}' is not contained in default metrics_to_plot list. Use CustomMetric instead to specify your own metric."
                 )
 
-    if False:
-        @staticmethod
-        def split_metrics(metrics_to_split: List[str]):
-            """
-            Split metrics on two parts:
-            - metrics to track as the method works: "x", "nfev", "nhev", "njev", "time" (if specified)
-            - metrics that will be calculated at the end of method: all metrics, except "x", ...,  "time" (if specified)
-            """
-            metrics_now = ["x", "nfev", "nhev", "njev", "time"]
-            metrics_to_track_now = [
-                metric for metric in metrics_now if metric in metrics_to_split
-            ]
-            if "x" not in metrics_to_track_now:
-                metrics_to_track_now.append("x")
-
-            metrics_to_track_after = [
-                metric for metric in metrics_to_split if metric not in metrics_now
-            ]
-
-            return metrics_to_track_now, metrics_to_track_after
-
 
 class CustomMetric:
     """
-    CustomMetric class allows to compute your own metric to plot.
+    Class to define custom metrics for optimization methods.    
+    
     It is assumed that the metric is calculated using points from
     the method trajectory, i.e. function func is real-valued and
     takes as an argument a point from R^d, where d is dimensionality
@@ -108,6 +93,11 @@ class CustomMetric:
     calculation.
     self.func will be calculated at each iteration whose number
     is a multiple of self.step.
+    
+    Attributes:
+        func (Callable): The function to compute the custom metric.
+        label (str): The label for the custom metric.
+        step (int): The step parameter for frequency of computation.
     """
 
     def __init__(self, func: Callable, label: str, step: int = 1) -> None:

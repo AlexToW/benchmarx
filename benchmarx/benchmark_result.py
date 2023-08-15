@@ -30,6 +30,13 @@ class BenchmarkResult:
         methods: List[str] = None,
         data: Dict[Problem, Dict[str, Dict[str, List[any]]]] = None,
     ) -> None:
+        """
+        Initialize BenchmarkResult instance.
+
+        :param problem: The Problem on which the benchmarking was performed.
+        :param methods: List of method names.
+        :param data: Dictionary containing benchmarking data.
+        """
         self.problem = problem
         self.methods = methods
         self.data = data
@@ -37,12 +44,10 @@ class BenchmarkResult:
     @staticmethod
     def _convert(val):
         """
-        Converts val from str to apropriate type.
-        ['[2. 1.]', '[7.5 8.]']
-        ['4.5', '-0.1']
-        '[1.1 -7.7]'
-        '0.01'
-        'MyGD'
+        Converts val from str to appropriate type.
+
+        :param val: Value to convert.
+        :return: Converted value.
         """
 
         if isinstance(val, float) or isinstance(val, jnp.ndarray):
@@ -98,6 +103,11 @@ class BenchmarkResult:
     @staticmethod
     def _matrix_from_str(A_str: str):
         """
+        Converts string representation of a matrix to a numpy array.
+
+        :param A_str: String representation of the matrix.
+        :return: Numpy array representing the matrix.
+
         A_str in format:
         "[[0.96531415 0.84779143 0.72762513]\n [0.31114805 0.03425407 0.31510842]\n [0.12594318 0.42591357 0.8050107 ]]"
         """
@@ -111,7 +121,10 @@ class BenchmarkResult:
     @classmethod
     def load(cls, path: str) -> None:
         """
-        Loads benchmark data to self.data from json-file by path.
+        Loads benchmark data from a JSON file.
+
+        :param path: Path to the JSON file.
+        :return: Loaded BenchmarkResult instance.
         """
         raw_data = dict()
         with open(path) as json_file:
@@ -187,7 +200,9 @@ class BenchmarkResult:
 
     def save(self, path: str) -> None:
         """
-        Saves benchmarking data to a json file by path.
+        Saves benchmarking data to a JSON file.
+
+        :param path: Path to save the JSON file.
         """
         # data: dict[Problem, dict[str, dict[str, list[any]]]]
         data_str = dict()
@@ -235,6 +250,11 @@ class BenchmarkResult:
 
     def get_dataframes(self, df_metrics: List[str | CustomMetric]) -> Tuple[Dict[str, pd.DataFrame], List[str]]:
         """
+        Create DataFrames from rows.
+
+        :param df_metrics: List of metrics to put in columns.
+        :return: Tuple of DataFrames and list of successfully calculated metrics.
+
         Create DataFrame form rows.
         Returns tuple of:
             [0] dictionary {problem: problem's DataFrame}.
@@ -446,6 +466,16 @@ class BenchmarkResult:
         include_plotlyjs: str = "cdn",
         full_html: bool = False
     ) -> None:
+        """
+        Plot benchmarking data.
+
+        :param metrics: List of metrics to plot.
+        :param plotly_config: Plotly configuration.
+        :param write_html: Flag to write HTML plot.
+        :param path_to_write: Path to write HTML plot.
+        :param include_plotlyjs: Option for including Plotly JS.
+        :param full_html: Flag for full HTML plot.
+        """
         from benchmarx.plotter import Plotter 
         plotter = Plotter(
             benchmark_result=self

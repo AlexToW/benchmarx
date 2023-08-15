@@ -19,9 +19,7 @@ from benchmarx.defaults import default_seed
 
 class Benchmark:
     """
-    A class that provides the benchmarking of different optimization
-    methods on a given problem (like Problem object).
-
+    A class that provides benchmarking of different optimization methods on a given problem.
 
     Note: nfev, njev, nhev metrics aoutomaticly disable jax.jit.
     """
@@ -44,10 +42,13 @@ class Benchmark:
         runs: int = 1,
     ) -> None:
         """
-        problem: Problem class object (or inheritor)
-        methods: List[Dict[str, Dict[str, any]]] or List[Dict[str, CustomOptimizer]], methods for benchmarking
-        metrics: List[str | _metrics.CustomMetric], metrics to track (see metrics.Metrics)
-        runc: int, number of runs
+        Initialize the Benchmark instance.
+
+        Args:
+            problem: A Problem class object (or inheritor).
+            methods: A list of dictionaries with method names and their corresponding parameters.
+            metrics: A list of metrics to track.
+            runs: Number of runs for each method.
         """
         self.runs = runs
         self.problem = problem
@@ -73,6 +74,16 @@ class Benchmark:
 
 
     def _check_linesearch(self, ls_str: str, method: str):
+        """
+        Check if a given line search method is valid for a specific optimization method.
+
+        Args:
+            ls_str: Line search method name.
+            method: Optimization method name.
+
+        Returns:
+            True if the line search is valid for the optimization method, False otherwise.
+        """
         # TODO: 'steepest' for QuadraticProblem!
         if method.startswith("GRADIENT_DESCENT"):
             return ls_str in ["armijo", "goldstein", "strong-wolfe", "wolfe"]
@@ -94,9 +105,16 @@ class Benchmark:
         **kwargs
     ) -> Dict[str, List[any]]:
         """
-        A layer for pulling the necessary information according to metrics
-        as the "method" solver works (solver like jaxopt.GradientDescent obj
-        or or an heir to the CustomOptimizer class)
+        Run an optimization solver and collect metrics.
+
+        Args:
+            solver: The solver object to be run.
+            x_init: Initial solution.
+            *args: Additional arguments for the solver.
+            **kwargs: Additional keyword arguments for the solver.
+
+        Returns:
+            A dictionary containing collected metrics.
         """
         # set nfev, njev and nhev to 0 at the begining of method
         self.nfev_global = 0
@@ -274,6 +292,12 @@ class Benchmark:
         return self.traced_objective_function(x), self.traced_gradient_function(x)
 
     def run(self) -> BenchmarkResult:
+        """
+        Run benchmarking for the specified optimization methods on the given problem.
+
+        Returns:
+            A BenchmarkResult object containing the benchmarking results.
+        """
         res = BenchmarkResult(
             problem=self.problem, 
             methods=list()

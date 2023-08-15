@@ -119,7 +119,6 @@ def _main():
 
     problem = QuadraticProblem(
         n=d,
-        b=jnp.zeros(d),
         mineig=mu,
         maxeig=L,
         info=f"QP"
@@ -128,7 +127,7 @@ def _main():
 
     key = jax.random.PRNGKey(110520)
     x_init = jax.random.uniform(key, minval=0, maxval=1, shape=(d,)) / d
-    nit = 200
+    nit = 20
 
     md_solver = MirrorDescent(
         x_init=x_init,
@@ -153,7 +152,7 @@ def _main():
         label="main_gap"
     )
     benchmark = Benchmark(
-        runs=3,
+        runs=4,
         problem=problem,
         methods=[{
             "MirrorDescent": md_solver
@@ -171,7 +170,10 @@ def _main():
 
     result = benchmark.run()
     result.plot(
-        metrics=["x_gap", "f", "f_gap", "grad_norm", "x_norm", gap]
+        metrics=["x_gap", "f", "f_gap", "grad_norm", "x_norm", "relative_x_gap", "relative_f_gap", gap]
+    )
+    result.save(
+        path="temp_test_res.json"
     )
 
     """

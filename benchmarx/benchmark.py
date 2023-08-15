@@ -626,6 +626,45 @@ class Benchmark:
                             "hyperparams": params,
                             "runs": runs_dict,
                         }
+                    elif method.startswith("NonlinearCG"):
+                        logging.info("NonlinearCG (jaxopt built-in)")
+                        res.methods.append(method)
+                        x_init = None
+                        label = "jaxopt.NonlinearCG"
+                        if hasattr(self.problem, "seed"):
+                            seed = str(self.problem.seed)
+                        else:
+                            seed = str(default_seed)
+                        if "x_init" in params:
+                            x_init = params["x_init"]
+                            params.pop("x_init")
+                        if "label" in params:
+                            label = params["label"]
+                            params.pop("label")
+                        if "seed" in params:
+                            seed = params["seed"]
+                            params.pop("seed")
+                        runs_dict = dict()
+                        solver = jaxopt.NonlinearCG(
+                            fun=self.tracked_objective_and_gradient,
+                            value_and_grad=True, 
+                            **params)
+                        for run in range(self.runs):
+                            if run % 10 == 0:
+                                logging.info(f"#{run} run...")
+                            sub = self.__run_solver(
+                                solver=solver,
+                                x_init=x_init,
+                                **params,
+                            )
+                            runs_dict[f"run_{run}"] = sub
+                        params["x_init"] = x_init
+                        params["label"] = label
+                        params["seed"] = seed
+                        data[self.problem][method] = {
+                            "hyperparams": params,
+                            "runs": runs_dict,
+                        }
 
                 else:
                     # params is custom_solver object now

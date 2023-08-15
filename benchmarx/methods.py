@@ -6,7 +6,8 @@ available_built_in_methods = [
     'BFGS',
     'LBFGS',
     'ArmijoSGD',
-    'PolyakSGD'
+    'PolyakSGD',
+    'NonlinearCG'
 ]
 
 def check_method(methods: List[str]):

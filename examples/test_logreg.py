@@ -68,9 +68,16 @@ class CSGD(CustomOptimizer):
     
 
 def logreg_mushrooms():
-    problem = LogisticRegression("mushrooms")
+    problem = LogisticRegression(
+        info="Logistic Regression problem on mushrooms dataset, l2-regularization",
+        problem_type="mushrooms"
+    )
 
     L = problem.estimate_L()
+
+    # l2 regularizer
+    regularizer = lambda w: L/2500*jnp.linalg.norm(w, ord=2)**2
+    problem.regularizer = regularizer
 
     key = jax.random.PRNGKey(110520)
     x_init = jax.random.uniform(key, minval=0, maxval=1, shape=(problem.d_train,))
@@ -188,7 +195,8 @@ def logreg_cancer():
     )
 
 def _main():
-    logreg_cancer()
+    #logreg_cancer()
+    logreg_mushrooms()
 
 
 if __name__ == "__main__":

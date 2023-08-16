@@ -17,4 +17,3 @@ examples/*.pdf
 *.html
 *.json
 *.csv
-/examples/fmin_benchmarks

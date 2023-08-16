@@ -1,0 +1,42 @@
+Linear regression (aka quadratic problem), for every dataset:
+[1] GD
+[2]	GD adapt step
+[3] Steepest descent
+[4] NAG
+[5] Heavy Ball
+
+[1] GD
+[2] SGD
+[3] CSGD
+[4] SAGA
+[5] SVRG
+
+[1] Newton
+[2]	Broyden
+[3] BFGS
+[4] LBFGS
+[5] GD
+[6] CG PR
+[7] CG FR
+
+
+Logistic regression(without and with l1, l2, elastic-net):
+[1] GD
+[2] GD adapt step
+[3] NAG
+[4] NAG backtracking L
+
+[1] GD
+[2] SGD
+[3] CSGD
+[4] SAGA
+[5] SVRG
+
+[1] Newton
+[2] Broyden
+[3] BFGS
+[4] LBFGS
+[5] GD
+[6] CG PR
+[7] CG FR
+

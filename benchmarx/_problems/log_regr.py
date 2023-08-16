@@ -7,6 +7,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
 from benchmarx.model_problem import ModelProblem
+from typing import Callable
 
 
 class LogisticRegression(ModelProblem):
@@ -23,15 +24,19 @@ class LogisticRegression(ModelProblem):
     result = benchmark.run()
     """
 
-    def __init__(self, problem_type: str = "mushrooms", x_opt=None) -> None:
+    def __init__(self, info: str=None, problem_type: str = "mushrooms", regularizer: Callable= lambda w: 0, x_opt=None) -> None:
         """
         problem_type: The type of problem to set up. Can be one of the
                                following:
                                - 'mushrooms'
                                - 'breast_cancer'
         """
-        super().__init__(info=f"Logistic Regression problem on {problem_type} dataset", x_opt=x_opt)
+        info_str = info
+        if info is None:
+            info_str = f"Logistic Regression problem on {problem_type} dataset"
+        super().__init__(info=info_str, x_opt=x_opt)
         self.problem_type = problem_type
+        self.regularizer = regularizer
 
         if problem_type == "mushrooms":
             dataset = "mushrooms.txt"
@@ -62,7 +67,7 @@ class LogisticRegression(ModelProblem):
 
     @staticmethod
     @jax.jit
-    def log_loss(w, X, y):
+    def jitted_log_loss(w, X, y):
         """
         Calculate the logistic loss function value.
 
@@ -75,6 +80,22 @@ class LogisticRegression(ModelProblem):
             Any: The logistic loss function value.
         """
         return jnp.mean(jnp.logaddexp(jnp.zeros(X.shape[0]), -y * (X @ w)))
+    
+    @staticmethod
+    def log_loss(w, X, y, regularizer):
+        """
+        Calculate the regularized logistic loss function value.
+
+        Args:
+            w (Any): Parameter vector.
+            X (Any): Input features.
+            y (Any): Target labels.
+            regularizer (Callable): regularizer
+
+        Returns:
+            Any: The regularized logistic loss function value.
+        """
+        return LogisticRegression.jitted_log_loss(w=w, X=X, y=y) + regularizer(w)
 
     def accuracy(self, w, X, y):
         """
@@ -100,7 +121,7 @@ class LogisticRegression(ModelProblem):
         Returns:
             Any: The logistic loss function value.
         """
-        return LogisticRegression.log_loss(w=w, X=self.X_train, y=self.y_train)
+        return LogisticRegression.log_loss(w=w, X=self.X_train, y=self.y_train, regularizer=self.regularizer)
 
     def test_loss(self, w, *args, **kwargs):
         """
@@ -112,7 +133,7 @@ class LogisticRegression(ModelProblem):
         Returns:
             Any: The logistic loss function value.
         """
-        return LogisticRegression.log_loss(w=w, X=self.X_test, y=self.y_test)
+        return LogisticRegression.log_loss(w=w, X=self.X_test, y=self.y_test, regularizer=self.regularizer)
 
     def train_accuracy(self, w, *args, **kwargs):
         """

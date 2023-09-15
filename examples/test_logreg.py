@@ -67,9 +67,53 @@ class CSGD(CustomOptimizer):
         return False
     
 
+class SGD(CustomOptimizer):
+    """
+    SGD for LogLoss
+    """
+    def __init__(self, x_init, stepsize, problem, tol=0, maxiter=1000, label = 'SGD'):
+        params = {
+            'x_init': x_init,
+            'tol': tol,
+            'maxiter': maxiter,
+            'stepsize': stepsize
+        }
+        self.stepsize = stepsize
+        self.problem = problem
+        self.maxiter = maxiter
+        self.batch = 1
+        self.tol = tol
+        super().__init__(params=params, x_init=x_init, label=label)
+
+    def init_state(self, x_init, *args, **kwargs) -> State:
+        return State(
+            iter_num=1,
+            stepsize=self.stepsize
+        )
+
+
+    def update(self, sol, state: State) -> tuple([jnp.array, State]):
+        n = self.problem.y_train.shape[0] // 10
+        d = self.problem.d_train
+        indices = random.sample(
+            population=list(range(n)),
+            k=self.batch
+        )
+        g = jnp.zeros(d)
+        for ind in indices:
+            g += self.problem.grad_log_loss_ind(sol, ind)
+        sol = sol - self.stepsize / self.batch * g
+        state.iter_num += 1
+        return sol, state
+    
+    def stop_criterion(self, sol, state: State) -> bool:
+        return False
+    
+
 def logreg_mushrooms():
     problem = LogisticRegression(
         info="Logistic Regression problem on mushrooms dataset, l2-regularization",
+        train_data_parts=10,
         problem_type="mushrooms"
     )
 

@@ -24,7 +24,7 @@ class LogisticRegression(ModelProblem):
     result = benchmark.run()
     """
 
-    def __init__(self, info: str=None, problem_type: str = "mushrooms", regularizer: Callable= lambda w: 0, x_opt=None) -> None:
+    def __init__(self, info: str=None, problem_type: str = "mushrooms", train_data_part_size: int=-1, regularizer: Callable= lambda w: 0, x_opt=None) -> None:
         """
         problem_type: The type of problem to set up. Can be one of the
                                following:
@@ -37,6 +37,9 @@ class LogisticRegression(ModelProblem):
         super().__init__(info=info_str, x_opt=x_opt)
         self.problem_type = problem_type
         self.regularizer = regularizer
+
+        if train_data_part_size > 0:
+            self.train_data_parts = train_data_part_size
 
         if problem_type == "mushrooms":
             dataset = "mushrooms.txt"
@@ -96,6 +99,22 @@ class LogisticRegression(ModelProblem):
             Any: The regularized logistic loss function value.
         """
         return LogisticRegression.jitted_log_loss(w=w, X=X, y=y) + regularizer(w)
+    
+    def grad_log_loss_ind(self, w, ind):
+        """
+        The logistic regression problem has a finite sum form:
+        f(w) = 1/n sum_{j=1}^n [f_j(w)],
+        f_j(w) = 1/b sum_{i=1}^b l(g(w, x_i), y_i)
+
+        where b = self.train_data_part_size,
+        n*b = N -- full sample size (X.shape[0]).
+        ind in range(n)
+        Returns:
+            1/b sum_{i=1}^b l(g(w, x_i), y_i)
+        """
+        X_part = self.X_train[ind * self.train_data_part_size : (ind + 1) * self.train_data_part_size]
+        y_part = self.y_train[ind * self.train_data_part_size : (ind + 1) * self.train_data_part_size]
+        return jax.grad(LogisticRegression.jitted_log_loss(w=w, X=X_part, y=y_part))(w)
 
     def accuracy(self, w, X, y):
         """
@@ -172,3 +191,14 @@ class LogisticRegression(ModelProblem):
         max_eigenvalue = jnp.max(eigenvalues)
         L = max_eigenvalue / self.n_train
         return float(L.real)
+
+    def estimate_L_for_sum(self):
+        """
+        Estimate the Lipschitz constant of the gradient of the logistic loss function
+        for each part of datasets and returns maximum.
+
+        Returns:
+            float: Estimated Lipschitz constant for sum.
+        """
+        Ls = []
+        n = self.n_train // self.tr

@@ -36,8 +36,6 @@ Refer to the examples provided in the repository for details on how to use this 
 
 - Your own custom metric and interactive chart [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/12I_T09gELjZlslOP8nRV4v2ght2R6vDX?usp=sharing)
 
-- Stochastic Gradient Descent on Quadratic Problem [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1bD7eM9NNZqEvMjlTl6OKvN_vcmtHSMAd?usp=sharing)
-
 - Compare how different methods handle logistic regression on real data [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1n2zPUGPFQ-9unu00uoI9cRYz4epKDbZ2?usp=sharing)
 
 ## Documentation

@@ -17,7 +17,7 @@ Benchmarx is a Python library that enables you to benchmark various optimization
 You can install Benchmarx using pip:
 
 ```bash
-pip install benchmarx
+pip install benchmarx==0.0.11
 ```
 
 ## Usage

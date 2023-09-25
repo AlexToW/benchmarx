@@ -65,7 +65,7 @@ class CSGD(CustomOptimizer):
     
     def stop_criterion(self, sol, state: State) -> bool:
         return False
-    
+
 
 class SGD(CustomOptimizer):
     """

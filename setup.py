@@ -7,7 +7,7 @@ with open("README.md", "r") as f:
 
 setup(
     name="benchmarx",
-    version="0.0.10",
+    version="0.0.11",
     description="Tools for benchmarking optimization methods",
     #package_dir={"" : "benchmarx"},
     #py_modules=['benchmarx'],
@@ -20,7 +20,7 @@ setup(
     author_email="31salex31@gmail.com",
     license="MIT",
     classifiers=[
-        "Licanse :: OSI Approved :: MIT License",
+        "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3.7",
         "Operating System :: OS Independent",
     ],
